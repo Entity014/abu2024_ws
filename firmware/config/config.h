@@ -1,7 +1,7 @@
-#ifdef USE_AUTO_OUTPUT_CONFIG
-#include "custom/auto_output.h"
+#ifdef USE_DRIVE_OUTPUT_CONFIG
+#include "custom/drive_output.h"
 #endif
 
-#ifdef USE_AUTO_INPUT_CONFIG
-#include "custom/auto_input.h"
+#ifdef USE_DRIVE_INPUT_CONFIG
+#include "custom/drive_input.h"
 #endif

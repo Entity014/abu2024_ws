@@ -1,0 +1,14 @@
+{
+  "python.autoComplete.extraPaths": [
+    "/home/entity014/University/lab_robo_ws/install/fake_ar_publisher/local/lib/python3.10/dist-packages",
+    "/home/entity014/microros_ws/install/micro_ros_msgs/local/lib/python3.10/dist-packages",
+    "/opt/ros/humble/lib/python3.10/site-packages",
+    "/opt/ros/humble/local/lib/python3.10/dist-packages"
+  ],
+  "python.analysis.extraPaths": [
+    "/home/entity014/University/lab_robo_ws/install/fake_ar_publisher/local/lib/python3.10/dist-packages",
+    "/home/entity014/microros_ws/install/micro_ros_msgs/local/lib/python3.10/dist-packages",
+    "/opt/ros/humble/lib/python3.10/site-packages",
+    "/opt/ros/humble/local/lib/python3.10/dist-packages"
+  ]
+}
