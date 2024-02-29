@@ -1,9 +1,14 @@
 <?xml version="1.0"?>
-<robot name="mec_bot" xmlns:xacro="http://ros.org/wiki/xacro">
-    <xacro:include filename="$(find abu_description)/urdf/properties.urdf.xacro" />
+<robot name="abu_bot" xmlns:xacro="http://ros.org/wiki/xacro">
+    <!-- ROBOT -->
     <xacro:include filename="$(find abu_description)/urdf/base.urdf.xacro" />
-    <xacro:include filename="$(find abu_description)/urdf/dir_wheel.urdf.xacro" />
-    <xacro:include filename="$(find abu_description)/urdf/rot_wheel.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/properties.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/sensors/imu.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/robot_control.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/sensors/depth_sensor.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/sensors/generic_laser.urdf.xacro" />
+
+
     <xacro:base 
         length="${base_length}" 
         width="${base_width}" 
@@ -13,75 +18,6 @@
         wheel_pos_z="${wheel_pos_z}"
     />
 
-    <xacro:rotation_wheel 
-        side="front_left"
-        radius="${wheel_rot_radius}" 
-        width="${wheel_rot_width}" 
-        pos_x="${wheel_pos_x}" 
-        pos_y="${wheel_pos_y}" 
-        pos_z="${wheel_pos_z}" 
-        mass="${wheel_mass}"
-    />
-
-    <xacro:rotation_wheel 
-        side="front_right"
-        radius="${wheel_rot_radius}" 
-        width="${wheel_rot_width}" 
-        pos_x="${wheel_pos_x}" 
-        pos_y="${-wheel_pos_y}" 
-        pos_z="${wheel_pos_z}" 
-        mass="${wheel_mass}"
-    />
-    <xacro:rotation_wheel 
-        side="rear_left"
-        radius="${wheel_rot_radius}" 
-        width="${wheel_rot_width}" 
-        pos_x="${-wheel_pos_x}" 
-        pos_y="${wheel_pos_y}" 
-        pos_z="${wheel_pos_z}" 
-        mass="${wheel_mass}"
-    />
-
-    <xacro:rotation_wheel 
-        side="rear_right"
-        radius="${wheel_rot_radius}" 
-        width="${wheel_rot_width}" 
-        pos_x="${-wheel_pos_x}" 
-        pos_y="${-wheel_pos_y}" 
-        pos_z="${wheel_pos_z}" 
-        mass="${wheel_mass}"
-    />
-    <xacro:direction_wheel 
-        side="front_left"
-        radius="${wheel_dir_radius}" 
-        width="${wheel_dir_width}" 
-        pos_z="${wheel_dir_pos_z}" 
-        mass="${wheel_mass}"
-    />
-
-    <xacro:direction_wheel 
-        side="front_right"
-        radius="${wheel_dir_radius}" 
-        width="${wheel_dir_width}" 
-        pos_z="${wheel_dir_pos_z}" 
-        mass="${wheel_mass}"
-    />
-    <xacro:direction_wheel 
-        side="rear_left"
-        radius="${wheel_dir_radius}" 
-        width="${wheel_dir_width}" 
-        pos_z="${wheel_dir_pos_z}" 
-        mass="${wheel_mass}"
-    />
-
-    <xacro:direction_wheel 
-        side="rear_right"
-        radius="${wheel_dir_radius}" 
-        width="${wheel_dir_width}" 
-        pos_z="${wheel_dir_pos_z}" 
-        mass="${wheel_mass}"
-    />
-<!-- 
     <xacro:imu/>
 
     <xacro:generic_laser>
@@ -92,5 +28,156 @@
         <xacro:insert_block name="depth_sensor_pose" />
     </xacro:depth_sensor>
 
-    <xacro:drive_controller/> -->
+    <xacro:robot_controller/> 
+
+    <!-- DRIVE -->
+    <xacro:include filename="$(find abu_description)/urdf/drive.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/swerve_wheel/wheel.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/swerve_wheel/wheel.transmission.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/swerve_wheel/steering.transmission.xacro" />
+
+    <xacro:swerve_wheel 
+        side="front_left"
+        rot_radius="${wheel_rot_radius}" 
+        rot_width="${wheel_rot_width}" 
+        dir_radius="${wheel_dir_radius}" 
+        dir_width="${wheel_dir_width}" 
+        pos_x="${wheel_pos_x}" 
+        pos_y="${wheel_pos_y}" 
+        pos_z="${wheel_pos_z}"
+        dir_pos_z="${wheel_dir_pos_z}" 
+        mass="${wheel_mass}"
+    />
+
+    <xacro:swerve_wheel 
+        side="front_right"
+        rot_radius="${wheel_rot_radius}" 
+        rot_width="${wheel_rot_width}" 
+        dir_radius="${wheel_dir_radius}" 
+        dir_width="${wheel_dir_width}" 
+        pos_x="${wheel_pos_x}" 
+        pos_y="${-wheel_pos_y}" 
+        pos_z="${wheel_pos_z}" 
+        dir_pos_z="${wheel_dir_pos_z}" 
+        mass="${wheel_mass}"
+    />
+    <xacro:swerve_wheel 
+        side="rear_left"
+        rot_radius="${wheel_rot_radius}" 
+        rot_width="${wheel_rot_width}" 
+        dir_radius="${wheel_dir_radius}" 
+        dir_width="${wheel_dir_width}" 
+        pos_x="${-wheel_pos_x}" 
+        pos_y="${wheel_pos_y}" 
+        pos_z="${wheel_pos_z}" 
+        dir_pos_z="${wheel_dir_pos_z}" 
+        mass="${wheel_mass}"
+    />
+
+    <xacro:swerve_wheel 
+        side="rear_right"
+        rot_radius="${wheel_rot_radius}" 
+        rot_width="${wheel_rot_width}" 
+        dir_radius="${wheel_dir_radius}" 
+        dir_width="${wheel_dir_width}" 
+        pos_x="${-wheel_pos_x}" 
+        pos_y="${-wheel_pos_y}" 
+        pos_z="${wheel_pos_z}" 
+        dir_pos_z="${wheel_dir_pos_z}" 
+        mass="${wheel_mass}"
+    />
+
+    <ros2_control name="swerve_robot_gazebo_system" type="system">
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+        <xacro:wheel_transmission side="front_right" />
+        <xacro:wheel_transmission side="front_left" />
+        <xacro:wheel_transmission side="rear_left" />
+        <xacro:wheel_transmission side="rear_right" />
+        <xacro:steer_transmission side="front_right" />
+        <xacro:steer_transmission side="front_left" />
+        <xacro:steer_transmission side="rear_left" />
+        <xacro:steer_transmission side="rear_right" />
+    </ros2_control>
+
+    <xacro:drive_controller/> 
+
+    <!-- GRIPPER -->
+    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_df1.transmission.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_df2.transmission.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_wrist.transmission.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_hand.transmission.xacro" />
+
+    <xacro:gripper
+        side="right"
+        mass="${gripper_mass}"
+        length1="${gripper_df1_length}"
+        width1="${gripper_df1_width}"
+        height1="${gripper_df1_height}"
+        pos_x1="${gripper_df1_pos_x}"
+        pos_y1="${gripper_df1_pos_y}"
+        pos_z1="${gripper_df1_pos_z}"
+        length2="${gripper_df2_length}"
+        width2="${gripper_df2_width}"
+        height2="${gripper_df2_height}"
+        pos_x2="${gripper_df2_pos_x}"
+        pos_y2="${gripper_df2_pos_y}"
+        pos_z2="${gripper_df2_pos_z}"
+        radius3="${gripper_wrist_radius}"
+        width3="${gripper_wrist_width}"
+        pos_x3="${gripper_wrist_pos_x}"
+        pos_y3="${gripper_wrist_pos_y}"
+        pos_z3="${gripper_wrist_pos_z}"
+        radius4="${gripper_hand_radius}"
+        width4="${gripper_hand_width}"
+        pos_x4="${gripper_hand_pos_x}"
+        pos_y4="${gripper_hand_pos_y}"
+        pos_z4="${gripper_hand_pos_z}"
+    />
+
+    <xacro:gripper
+        side="left"
+        mass="${gripper_mass}"
+        length1="${gripper_df1_length}"
+        width1="${gripper_df1_width}"
+        height1="${gripper_df1_height}"
+        pos_x1="${gripper_df1_pos_x}"
+        pos_y1="${-gripper_df1_pos_y}"
+        pos_z1="${gripper_df1_pos_z}"
+        length2="${gripper_df2_length}"
+        width2="${gripper_df2_width}"
+        height2="${gripper_df2_height}"
+        pos_x2="${gripper_df2_pos_x}"
+        pos_y2="${gripper_df2_pos_y}"
+        pos_z2="${gripper_df2_pos_z}"
+        radius3="${gripper_wrist_radius}"
+        width3="${gripper_wrist_width}"
+        pos_x3="${gripper_wrist_pos_x}"
+        pos_y3="${gripper_wrist_pos_y}"
+        pos_z3="${gripper_wrist_pos_z}"
+        radius4="${gripper_hand_radius}"
+        width4="${gripper_hand_width}"
+        pos_x4="${gripper_hand_pos_x}"
+        pos_y4="${gripper_hand_pos_y}"
+        pos_z4="${gripper_hand_pos_z}"
+    />
+
+    <ros2_control name="gripper_robot_gazebo_system" type="system">
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+        <xacro:gripper_df1_transmission side="right" />
+        <xacro:gripper_df2_transmission side="right" />
+        <xacro:gripper_wrist_transmission side="right" />
+        <xacro:gripper_hand_transmission side="right" order="1"/>
+        <xacro:gripper_hand_transmission side="right" order="2"/>
+        <xacro:gripper_df1_transmission side="left" />
+        <xacro:gripper_df2_transmission side="left" />
+        <xacro:gripper_wrist_transmission side="left" />
+        <xacro:gripper_hand_transmission side="left" order="1"/>
+        <xacro:gripper_hand_transmission side="left" order="2"/>
+    </ros2_control>
+
 </robot>

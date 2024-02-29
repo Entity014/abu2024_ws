@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:macro name="gripper_hand_transmission" params="side order">
+        <joint name="${side}_${order}_gripper_hand_joint">
+        <command_interface name="position">
+            <param name="min">0</param>
+            <param name="max">0.015</param>
+        </command_interface>
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+        </joint>
+    </xacro:macro>
+</robot>

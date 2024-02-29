@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:macro name="gripper_df1" params="side length width height pos_x pos_y pos_z mass">
+        <link name="${side}_gripper_df1_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="file://$(find abu_description)/urdf/model/gripper_df1.dae" scale="1 1 1"/>
+            </geometry>
+            <material name="gray">
+                <color rgba="0.123 0.114 0.119 0.8"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.145 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${length} ${width} ${height}"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${mass}"/>
+            <inertia ixx="${(1/12) * mass * ((width  * width)  + (height * height))}" ixy="0.0" ixz="0.0"
+                    iyy="${(1/12) * mass * ((length * length) + (height * height))}" iyz="0.0"
+                    izz="${(1/12) * mass * ((length * length) + (width  * width))}"/>
+        </inertial>
+        </link>
+
+        <gazebo reference="${side}_gripper_df1_link">  
+        <visual>  
+            <material>
+            <ambient>0.123 0.114 0.119 0.8</ambient>  
+            <diffuse>0.123 0.114 0.119 0.8</diffuse>  
+            <specular>0.123 0.114 0.119 0.8</specular>  
+            <emissive>0.0 0.0 0.0 0.0</emissive>  
+            </material>
+        </visual>  
+        </gazebo>
+        <xacro:if value="${side == 'right'}">
+            <joint name="${side}_gripper_df1_joint" type="revolute">
+                <axis xyz="0 0 1" />
+                <parent link="base_link"/>
+                <child link="${side}_gripper_df1_link"/>
+                <origin xyz="${pos_x} ${pos_y} ${pos_z}" rpy="0 0 0"/>
+                <limit lower="-${pi}" upper="0" effort="-1" velocity="-1"/>
+            </joint>
+        </xacro:if>
+        <xacro:if value="${side == 'left'}">
+            <joint name="${side}_gripper_df1_joint" type="revolute">
+                <axis xyz="0 0 1" />
+                <parent link="base_link"/>
+                <child link="${side}_gripper_df1_link"/>
+                <origin xyz="${pos_x} ${pos_y} ${pos_z}" rpy="0 0 0"/>
+                <limit lower="0" upper="${pi}" effort="-1" velocity="-1"/>
+            </joint>
+        </xacro:if>
+    </xacro:macro>
+</robot>

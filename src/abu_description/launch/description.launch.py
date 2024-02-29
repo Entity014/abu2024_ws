@@ -1,6 +1,6 @@
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler
 from launch.substitutions import (
     LaunchConfiguration,
     Command,
@@ -10,6 +10,7 @@ from launch.substitutions import (
 from launch.conditions import IfCondition
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.event_handlers import OnProcessExit
 
 
 def generate_launch_description():
@@ -26,6 +27,28 @@ def generate_launch_description():
         [FindPackageShare("abu_description"), "rviz", "description.rviz"]
     )
 
+    node_rviz = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="screen",
+        arguments=["-d", rviz_config_path],
+        condition=IfCondition(LaunchConfiguration("rviz")),
+        parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
+    )
+    node_controller = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "joint_state_broadcaster",
+            "steering_controller",
+            "wheel_controller",
+            "left_gripper_controller",
+            "right_gripper_controller",
+        ],
+        condition=IfCondition(LaunchConfiguration("publish_controller")),
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -37,7 +60,12 @@ def generate_launch_description():
                 description="Launch joint_states_publisher",
             ),
             DeclareLaunchArgument(
-                name="rviz", default_value="true", description="Run rviz"
+                name="publish_controller",
+                default_value="true",
+                description="Launch controller_manager",
+            ),
+            DeclareLaunchArgument(
+                name="rviz", default_value="false", description="Run rviz"
             ),
             DeclareLaunchArgument(
                 name="use_sim_time",
@@ -48,10 +76,7 @@ def generate_launch_description():
                 package="joint_state_publisher",
                 executable="joint_state_publisher",
                 name="joint_state_publisher",
-                condition=IfCondition(LaunchConfiguration("publish_joints"))
-                # parameters=[
-                #     {'use_sim_time': LaunchConfiguration('use_sim_time')}
-                # ] #since galactic use_sim_time gets passed somewhere and rejects this when defined from launch file
+                condition=IfCondition(LaunchConfiguration("publish_joints")),
             ),
             Node(
                 package="robot_state_publisher",
@@ -67,14 +92,18 @@ def generate_launch_description():
                     }
                 ],
             ),
+            node_controller,
             Node(
-                package="rviz2",
-                executable="rviz2",
-                name="rviz2",
+                package="abu_description",
+                executable="swerve_drive_control.py",
+                name="swerve_drive_control",
                 output="screen",
-                arguments=["-d", rviz_config_path],
-                condition=IfCondition(LaunchConfiguration("rviz")),
-                parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
+            ),
+            RegisterEventHandler(
+                event_handler=OnProcessExit(
+                    target_action=node_controller,
+                    on_exit=[node_rviz],
+                )
             ),
         ]
     )

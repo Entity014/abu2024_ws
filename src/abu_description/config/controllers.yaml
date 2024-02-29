@@ -1,0 +1,77 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    # Wheel
+    steering_controller:
+      type: position_controllers/JointGroupPositionController
+
+    wheel_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    # Gripper
+    right_gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    left_gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# Position Controllers ---------------------------------------
+steering_controller:
+  ros__parameters:
+    joints:
+      - front_right_steering_joint
+      - front_left_steering_joint
+      - rear_left_steering_joint
+      - rear_right_steering_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+
+# Velocity Controllers ---------------------------------------
+wheel_controller:
+  ros__parameters:
+    joints:
+      - front_right_dir_wheel_joint
+      - front_left_dir_wheel_joint
+      - rear_left_dir_wheel_joint
+      - rear_right_dir_wheel_joint
+    command_interfaces:
+      - velocity
+    state_interfaces:
+      - position
+      - velocity
+
+# Gripper
+right_gripper_controller:
+  ros__parameters:
+    joints:
+      - right_gripper_df1_joint
+      - right_gripper_df2_joint
+      - right_gripper_wrist_joint
+      - right_1_gripper_hand_joint
+      - right_2_gripper_hand_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+
+left_gripper_controller:
+  ros__parameters:
+    joints:
+      - left_gripper_df1_joint
+      - left_gripper_df2_joint
+      - left_gripper_wrist_joint
+      - left_1_gripper_hand_joint
+      - left_2_gripper_hand_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity

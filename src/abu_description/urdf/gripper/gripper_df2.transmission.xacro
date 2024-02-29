@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:macro name="gripper_df2_transmission" params="side">
+        <joint name="${side}_gripper_df2_joint">
+        <command_interface name="position">
+            <param name="min">-3.14 * 0.4</param>
+            <param name="max">3.14 / 2</param>
+        </command_interface>
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+        </joint>
+    </xacro:macro>
+</robot>

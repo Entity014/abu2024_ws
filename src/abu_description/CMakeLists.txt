@@ -22,11 +22,14 @@ find_package(rclpy REQUIRED)
 ament_python_install_package(src)
 
 install(
-  DIRECTORY urdf launch rviz src
+  DIRECTORY 
+  urdf launch rviz src config worlds maps
   DESTINATION share/${PROJECT_NAME}
 )
 
 install(PROGRAMS
+src/gripper_control.py
+  src/swerve_drive_control.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

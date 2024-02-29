@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_df1.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_df2.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_wrist.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_hand.urdf.xacro" />
+
+    <xacro:macro name="gripper" params="side mass length1 width1 height1 pos_x1 pos_y1 pos_z1 length2 width2 height2 pos_x2 pos_y2 pos_z2 radius3 width3 pos_x3 pos_y3 pos_z3 radius4 width4 pos_x4 pos_y4 pos_z4">
+        <xacro:gripper_df1
+            side="${side}"
+            length="${length1}"
+            width="${width1}"
+            height="${height1}"
+            pos_x="${pos_x1}"
+            pos_y="${pos_y1}"
+            pos_z="${pos_z1}"
+            mass="${mass * 20}"
+        />
+        <xacro:gripper_df2
+            side="${side}"
+            length="${length2}"
+            width="${width2}"
+            height="${height2}"
+            pos_x="${pos_x2}"
+            pos_y="${pos_y2}"
+            pos_z="${pos_z2}"
+            mass="${mass * 10}"
+        />
+        <xacro:gripper_wrist
+            side="${side}"
+            radius="${radius3}"
+            width="${width3}"
+            pos_x="${pos_x3}"
+            pos_y="${pos_y3}"
+            pos_z="${pos_z3}"
+            mass="${mass * 0.01}"
+        />
+        <xacro:gripper_hand
+            side="${side}"
+            order="1"
+            radius="${radius4}"
+            width="${width4}"
+            pos_x="${pos_x4}"
+            pos_y="${pos_y4}"
+            pos_z="${pos_z4}"
+            yaw="0"
+            mass="${mass}"
+        />
+        <xacro:gripper_hand
+            side="${side}"
+            order="2"
+            radius="${radius4}"
+            width="${width4}"
+            pos_x="${-pos_x4}"
+            pos_y="${pos_y4}"
+            pos_z="${pos_z4}"
+            yaw="${pi}"
+            mass="${mass}"
+        />
+    </xacro:macro>
+</robot>
