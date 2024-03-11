@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-    <xacro:macro name="gripper_hand" params="side order radius width pos_x pos_y pos_z yaw mass">
+    <xacro:macro name="gripper_hand" params="side order radius width pos_x pos_y pos_z mass">
         <link name="${side}_${order}_gripper_hand_link">
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -37,12 +37,24 @@
             </material>
         </visual>  
         </gazebo>
-        <joint name="${side}_${order}_gripper_hand_joint" type="prismatic">
-        <axis xyz="1 0 0" />
-        <parent link="${side}_gripper_wrist_link"/>
-        <child link="${side}_${order}_gripper_hand_link"/>
-        <origin xyz="${pos_x} ${pos_y} ${pos_z}" rpy="0 0 ${yaw}"/>
-        <limit lower="0" upper="0.015" effort="-1" velocity="-1"/>
-        </joint>
+        <xacro:if value="${order == 1}">
+            <joint name="${side}_${order}_gripper_hand_joint" type="prismatic">
+                <axis xyz="1 0 0" />
+                <parent link="${side}_gripper_wrist_link"/>
+                <child link="${side}_${order}_gripper_hand_link"/>
+                <origin xyz="${pos_x} ${pos_y} ${pos_z}" rpy="0 0 0"/>
+                <limit lower="0" upper="0.015" effort="-1" velocity="-1"/>
+            </joint>
+        </xacro:if>
+        <xacro:if value="${order == 2}">
+            <joint name="${side}_${order}_gripper_hand_joint" type="prismatic">
+                <axis xyz="1 0 0" />
+                <parent link="${side}_gripper_wrist_link"/>
+                <child link="${side}_${order}_gripper_hand_link"/>
+                <origin xyz="${pos_x} ${pos_y} ${pos_z}" rpy="0 0 ${pi}"/>
+                <limit lower="0" upper="0.015" effort="-1" velocity="-1"/>
+                <!-- <mimic joint="${side}_1_gripper_hand_joint" /> -->
+            </joint>
+        </xacro:if>
     </xacro:macro>
 </robot>

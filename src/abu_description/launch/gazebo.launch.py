@@ -9,6 +9,7 @@ from launch.substitutions import LaunchConfiguration, Command, PathJoinSubstitut
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.conditions import IfCondition
 
 
 def generate_launch_description():
@@ -36,10 +37,17 @@ def generate_launch_description():
         parameters=[config_path],
     )
 
+    rtabmap_launch_path = PathJoinSubstitution(
+        [FindPackageShare("abu_description"), "launch", "rtabmap.launch.py"]
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
                 name="world", default_value=world_path, description="Gazebo world"
+            ),
+            DeclareLaunchArgument(
+                name="rtabmap", default_value="true", description="Run rtabmap"
             ),
             ExecuteProcess(
                 cmd=[
@@ -83,23 +91,23 @@ def generate_launch_description():
                 }.items(),
             ),
             node_lidar_filter,
-            # Node(
-            #     package="rf2o_laser_odometry",
-            #     executable="rf2o_laser_odometry_node",
-            #     name="rf2o_laser_odometry",
-            #     output="screen",
-            #     parameters=[
-            #         {
-            #             "laser_scan_topic": "/scan_filtered",
-            #             "odom_topic": "/odom_rf2o",
-            #             "publish_tf": False,
-            #             "base_frame_id": "base_footprint",
-            #             "odom_frame_id": "odom",
-            #             "init_pose_from_topic": "",
-            #             "freq": 20.0,
-            #         }
-            #     ],
-            # ),
+            Node(
+                package="rf2o_laser_odometry",
+                executable="rf2o_laser_odometry_node",
+                name="rf2o_laser_odometry",
+                output="screen",
+                parameters=[
+                    {
+                        "laser_scan_topic": "/scan_filtered",
+                        "odom_topic": "/odom_rf2o",
+                        "publish_tf": False,
+                        "base_frame_id": "base_footprint",
+                        "odom_frame_id": "odom",
+                        "init_pose_from_topic": "",
+                        "freq": 20.0,
+                    }
+                ],
+            ),
             Node(
                 package="robot_localization",
                 executable="ekf_node",
@@ -107,6 +115,10 @@ def generate_launch_description():
                 output="screen",
                 parameters=[{"use_sim_time": use_sim_time}, ekf_config_path],
                 remappings=[("odometry/filtered", "odom")],
+            ),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(rtabmap_launch_path),
+                condition=IfCondition(LaunchConfiguration("rtabmap")),
             ),
         ]
     )

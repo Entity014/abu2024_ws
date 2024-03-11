@@ -33,32 +33,31 @@ ekf_filter_node:
         false,
         false,
       ]
-    # odom1: odom_rf2oO
-    # odom1_config:
-    #   [
-    #     false,
-    #     false,
-    #     false,
-    #     false,
-    #     false,
-    #     false,
-    #     true,
-    #     true,
-    #     false,
-    #     false,
-    #     false,
-    #     true,
-    #     false,
-    #     false,
-    #     false,
-    #   ]
+    odom1: odom_rf2oO
+    odom1_config:
+      [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+      ]
 
     imu0: imu/data
     imu0_config:
       [
         false,
         false,
-        true,
         false,
         false,
         false,
@@ -66,7 +65,8 @@ ekf_filter_node:
         false,
         false,
         false,
-        true,
+        false,
+        false,
         true,
         false,
         false,

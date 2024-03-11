@@ -23,8 +23,9 @@ def generate_launch_description():
         launch_arguments={
             "use_sim_time": "true",
             "args": "-d --RGBD/NeighborLinkRefining true --Reg/Strategy 1 --Reg/Force3DoF true --Grid/RangeMin 0.2",
+            "localization": "true",
             "rtabmap_viz": "false",
-            "rviz": "true",
+            "rviz": "false",
             "namespace": "",
             "rviz_cfg": rviz_config_path,
             # Lidar

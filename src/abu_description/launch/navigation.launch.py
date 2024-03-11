@@ -1,20 +1,21 @@
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    RegisterEventHandler,
+)
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
+from launch.event_handlers import OnProcessExit
 
-MAP_NAME = "test2"  # change to the name of your own map here
+MAP_NAME = "map"  # change to the name of your own map here
 
 
 def generate_launch_description():
-    nav2_launch_path = PathJoinSubstitution(
-        [FindPackageShare("nav2_bringup"), "launch", "bringup_launch.py"]
-    )
-
     rviz_config_path = PathJoinSubstitution(
         [FindPackageShare("abu_description"), "rviz", "navigation.rviz"]
     )
@@ -25,6 +26,27 @@ def generate_launch_description():
 
     nav2_config_path = PathJoinSubstitution(
         [FindPackageShare("abu_description"), "config", "navigation.yaml"]
+    )
+
+    nav2_launch_path = PathJoinSubstitution(
+        [FindPackageShare("nav2_bringup"), "launch", "bringup_launch.py"]
+    )
+
+    rviz_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="screen",
+        arguments=["-d", rviz_config_path],
+        condition=IfCondition(LaunchConfiguration("rviz")),
+        parameters=[{"use_sim_time": LaunchConfiguration("sim")}],
+    )
+
+    nav2_control_node = Node(
+        package="abu_description",
+        executable="nav2_control.py",
+        name="nav2_control",
+        output="screen",
     )
 
     return LaunchDescription(
@@ -42,6 +64,7 @@ def generate_launch_description():
                 default_value=default_map_path,
                 description="Navigation map path",
             ),
+            rviz_node,
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(nav2_launch_path),
                 launch_arguments={
@@ -50,14 +73,6 @@ def generate_launch_description():
                     "params_file": nav2_config_path,
                 }.items(),
             ),
-            Node(
-                package="rviz2",
-                executable="rviz2",
-                name="rviz2",
-                output="screen",
-                arguments=["-d", rviz_config_path],
-                condition=IfCondition(LaunchConfiguration("rviz")),
-                parameters=[{"use_sim_time": LaunchConfiguration("sim")}],
-            ),
+            nav2_control_node,
         ]
     )

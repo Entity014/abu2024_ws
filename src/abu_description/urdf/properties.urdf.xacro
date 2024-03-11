@@ -36,7 +36,7 @@
     <xacro:property name="gripper_wrist_pos_z" value="0.32" />
     <xacro:property name="gripper_hand_radius" value="0.015" />
     <xacro:property name="gripper_hand_width" value="0.045" />
-    <xacro:property name="gripper_hand_pos_x" value="-0.04" />
+    <xacro:property name="gripper_hand_pos_x" value="-0.03" />
     <xacro:property name="gripper_hand_pos_y" value="0" />
     <xacro:property name="gripper_hand_pos_z" value="0.03" />
 

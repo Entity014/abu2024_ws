@@ -1,0 +1,41 @@
+# MoveIt uses this configuration for controller management
+
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  controller_names:
+    - right_arm_controller
+    - left_arm_controller
+    - right_hand_controller
+    - left_hand_controller
+
+  right_arm_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - right_gripper_df1_joint
+      - right_gripper_df2_joint
+      - right_gripper_wrist_joint
+  left_arm_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - left_gripper_df1_joint
+      - left_gripper_df2_joint
+      - left_gripper_wrist_joint
+  right_hand_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - right_1_gripper_hand_joint
+      - right_2_gripper_hand_joint
+  left_hand_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - left_1_gripper_hand_joint
+      - left_2_gripper_hand_joint

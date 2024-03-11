@@ -164,7 +164,7 @@
         pos_z4="${gripper_hand_pos_z}"
     />
 
-    <ros2_control name="gripper_robot_gazebo_system" type="system">
+    <!-- <ros2_control name="gripper_robot_gazebo_system" type="system">
         <hardware>
             <plugin>gazebo_ros2_control/GazeboSystem</plugin>
         </hardware>
@@ -178,6 +178,6 @@
         <xacro:gripper_wrist_transmission side="left" />
         <xacro:gripper_hand_transmission side="left" order="1"/>
         <xacro:gripper_hand_transmission side="left" order="2"/>
-    </ros2_control>
+    </ros2_control> -->
 
 </robot>

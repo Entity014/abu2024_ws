@@ -1,0 +1,13 @@
+# Default initial positions for abu_bot's ros2_control fake system
+
+initial_positions:
+  left_1_gripper_hand_joint: 0
+  left_2_gripper_hand_joint: 0
+  left_gripper_df1_joint: 0
+  left_gripper_df2_joint: 0
+  left_gripper_wrist_joint: 0
+  right_1_gripper_hand_joint: 0
+  right_2_gripper_hand_joint: 0
+  right_gripper_df1_joint: 0
+  right_gripper_df2_joint: 0
+  right_gripper_wrist_joint: 0

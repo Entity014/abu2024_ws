@@ -28,8 +28,12 @@ install(
 )
 
 install(PROGRAMS
-src/gripper_control.py
+  src/teleop_twist_keyboard.py
+  src/gripper_control_left.py
+  src/gripper_control_right.py
   src/swerve_drive_control.py
+  src/seed_detection.py
+  src/nav2_control.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
