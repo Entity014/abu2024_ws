@@ -5,7 +5,7 @@
     <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_wrist.urdf.xacro" />
     <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_hand.urdf.xacro" />
 
-    <xacro:macro name="gripper" params="side mass length1 width1 height1 pos_x1 pos_y1 pos_z1 length2 width2 height2 pos_x2 pos_y2 pos_z2 radius3 width3 pos_x3 pos_y3 pos_z3 radius4 width4 pos_x4 pos_y4 pos_z4">
+    <xacro:macro name="gripper" params="side mass length1 width1 height1 pos_x1 pos_y1 pos_z1 length2 width2 height2 pos_x2 pos_y2 pos_z2 radius3 width3 pos_x3 pos_y3 pos_z3 length4 width4 height4 pos_x4 pos_y4 pos_z4">
         <xacro:gripper_df1
             side="${side}"
             length="${length1}"
@@ -38,8 +38,9 @@
         <xacro:gripper_hand
             side="${side}"
             order="1"
-            radius="${radius4}"
+            length="${length4}"
             width="${width4}"
+            height="${height4}"
             pos_x="${pos_x4}"
             pos_y="${pos_y4}"
             pos_z="${pos_z4}"
@@ -48,8 +49,9 @@
         <xacro:gripper_hand
             side="${side}"
             order="2"
-            radius="${radius4}"
+            length="${length4}"
             width="${width4}"
+            height="${height4}"
             pos_x="${-pos_x4}"
             pos_y="${pos_y4}"
             pos_z="${pos_z4}"

@@ -34,6 +34,7 @@ install(PROGRAMS
   src/swerve_drive_control.py
   src/seed_detection.py
   src/nav2_control.py
+  src/gripper_collision.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

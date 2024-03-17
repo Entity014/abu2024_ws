@@ -103,7 +103,7 @@ class SeedDetection(Node):
     def timer_callback(self):
         marker_msg = Marker()
         transform = TransformStamped()
-        marker_msg.header.frame_id = "base_link"
+        marker_msg.header.frame_id = "odom"
         transform.header.frame_id = "odom"
         transform.child_frame_id = "basic_shapes"
         marker_msg.header.stamp = self.get_clock().now().to_msg()

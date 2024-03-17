@@ -220,18 +220,18 @@
         <link name='link_1'>
           <pose>7.30361 0.167484 0.244369 5e-06 -3e-06 -0.016866</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0.000228 -0.000132 -9.79535 -0.001128 -8e-06 5.5e-05</acceleration>
-          <wrench>0.000228 -0.000132 -9.79535 0 -0 0</wrench>
+          <acceleration>0 0 -9.8 -0 -0 -0</acceleration>
+          <wrench>0 0 -9.8 0 -0 0</wrench>
         </link>
       </model>
       <model name='seed_blue_1'>
-        <pose>7.5539 0.168937 0.244369 0 -5e-06 8.8e-05</pose>
+        <pose>7.556516 0.167483 0.244369 0 -5e-06 8.8e-05</pose>
         <scale>1 1 1</scale>
         <link name='link_1'>
-          <pose>7.5539 0.168937 0.244369 0 -5e-06 8.8e-05</pose>
+          <pose>7.556516 0.167483 0.244369 0 -5e-06 8.8e-05</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0.704651 -0.068416 19.3314 0.584577 -0.250346 2.8e-05</acceleration>
-          <wrench>0.704651 -0.068416 19.3314 0 -0 0</wrench>
+          <acceleration>0 0 -9.8 -0 -0 -0</acceleration>
+          <wrench>0 0 -9.8 0 -0 0</wrench>
         </link>
       </model>
       <model name='seed_blue_10'>
@@ -240,8 +240,8 @@
         <link name='link_1'>
           <pose>9.81184 0.168238 0.244369 3e-06 -2e-06 -6e-05</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>-0.513862 -0.144237 19.5395 -1.91663 1.28431 -3.11427</acceleration>
-          <wrench>-0.513862 -0.144237 19.5395 0 -0 0</wrench>
+          <acceleration>0 0 -9.8 -0 -0 -0</acceleration>
+          <wrench>0 0 -9.8 0 -0 0</wrench>
         </link>
       </model>
       <model name='seed_blue_2'>
@@ -310,8 +310,8 @@
         <link name='link_1'>
           <pose>9.31235 0.166827 0.24437 1e-05 -1.1e-05 0.000133</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0.553887 0.441215 19.3687 2.50368 -1.53858 1e-06</acceleration>
-          <wrench>0.553887 0.441215 19.3687 0 -0 0</wrench>
+          <acceleration>0 0 -9.8 -0 -0 -0</acceleration>
+          <wrench>0 0 -9.8 0 -0 0 0</wrench>
         </link>
       </model>
       <model name='seed_blue_9'>
@@ -331,14 +331,14 @@
     <model name='seed_blue'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -421,14 +421,14 @@
     <model name='seed_blue_0'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -511,14 +511,14 @@
     <model name='seed_blue_1'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -601,14 +601,14 @@
     <model name='seed_blue_2'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -691,14 +691,14 @@
     <model name='seed_blue_3'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -781,14 +781,14 @@
     <model name='seed_blue_4'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -871,14 +871,14 @@
     <model name='seed_blue_5'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -961,14 +961,14 @@
     <model name='seed_blue_6'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -1051,14 +1051,14 @@
     <model name='seed_blue_7'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -1141,14 +1141,14 @@
     <model name='seed_blue_8'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -1231,14 +1231,14 @@
     <model name='seed_blue_9'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -1321,14 +1321,14 @@
     <model name='seed_blue_10'>
       <link name='link_1'>
         <inertial>
-          <mass>1</mass>
+          <mass>0.001</mass>
           <inertia>
-            <ixx>0.166667</ixx>
+            <ixx>0.07056</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
-            <iyy>0.166667</iyy>
+            <iyy>0.07056</iyy>
             <iyz>0</iyz>
-            <izz>0.166667</izz>
+            <izz>0.07056</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -1415,5 +1415,6 @@
         <projection_type>perspective</projection_type>
       </camera>
     </gui>
+  <plugin name="gazebo_link_attacher" filename="libgazebo_link_attacher.so"/>
   </world>
 </sdf>

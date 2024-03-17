@@ -39,6 +39,7 @@ import std_msgs.msg
 import rclpy
 from rclpy import qos
 from rclpy.qos import QoSProfile
+from linkattacher_msgs.srv import AttachLink, DetachLink
 
 if sys.platform == "win32":
     import msvcrt
@@ -177,6 +178,20 @@ def main():
         qos_profile=qos.qos_profile_system_default,
     )
 
+    client_attach = node.create_client(AttachLink, "/ATTACHLINK")
+    client_detach = node.create_client(DetachLink, "/DETACHLINK")
+
+    request_attach = AttachLink.Request()
+    request_attach.model1_name = "abu_bot"
+    request_attach.link1_name = "left_1_gripper_hand_link"
+    request_attach.model2_name = "seed_blue_10"
+    request_attach.link2_name = "link_1"
+    request_detach = DetachLink.Request()
+    request_detach.model1_name = "abu_bot"
+    request_detach.link1_name = "left_1_gripper_hand_link"
+    request_detach.model2_name = "seed_blue_10"
+    request_detach.link2_name = "link_1"
+
     speed = 0.5
     turn = 1.0
     x = 0.0
@@ -213,7 +228,8 @@ def main():
                         left_arm = [dir_left, 1.57, 1.57]
                         state_left_arm = 1
                     elif state_left_arm == 1:
-                        left_arm = [dir_left, -1.256, 1.57]
+                        # left_arm = [dir_left, -1.256, 1.57]
+                        left_arm = [dir_left, 0.0, 1.57]
                         state_left_arm = 0
                 elif gripperBindings[key] == 2:
                     if state_right_arm == 0:
@@ -225,9 +241,11 @@ def main():
                 elif gripperBindings[key] == 3:
                     if state_left_hand == 0:
                         left_hand = True
+                        client_attach.call_async(request_attach)
                         state_left_hand = 1
                     elif state_left_hand == 1:
                         left_hand = False
+                        client_detach.call_async(request_detach)
                         state_left_hand = 0
                 elif gripperBindings[key] == 4:
                     if state_right_hand == 0:
