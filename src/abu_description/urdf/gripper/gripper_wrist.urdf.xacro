@@ -43,11 +43,11 @@
         </visual>  
         </gazebo>
         <joint name="${side}_gripper_wrist_joint" type="revolute">
-        <axis xyz="0 0 1" />
-        <parent link="${side}_gripper_df2_link"/>
-        <child link="${side}_gripper_wrist_link"/>
-        <origin xyz="${pos_x} ${pos_y} ${pos_z}" rpy="0 0 0"/>
-        <limit lower="-${pi}" upper="${pi}" effort="-1" velocity="-1"/>
+            <axis xyz="0 0 1" />
+            <parent link="${side}_gripper_df2_link"/>
+            <child link="${side}_gripper_wrist_link"/>
+            <origin xyz="${pos_x} ${pos_y} ${pos_z}" rpy="0 0 0"/>
+            <limit lower="-${pi}" upper="${pi}" effort="-1" velocity="-1"/>
         </joint>
     </xacro:macro>
 </robot>

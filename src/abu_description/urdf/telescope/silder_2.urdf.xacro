@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:macro name="silder_2" params="length width height pos_x pos_y pos_z mass">
+        <link name="silder_2_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 ${-pi/2}"/>
+            <geometry>
+                <mesh filename="file://$(find abu_description)/urdf/model/silder_2.dae" scale="1 1 1"/>
+                <!-- <box size="${length} ${width} ${height}"/> -->
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 ${-pi/2}"/>
+            <geometry>
+                <mesh filename="file://$(find abu_description)/urdf/model/silder_2.dae" scale="1 1 1"/>
+                <!-- <box size="${length} ${width} ${height}"/> -->
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin xyz="0.2 0 0" rpy="0 0 0"/>
+            <mass value="${mass}"/>
+            <inertia ixx="${(1/12) * mass * ((width  * width)  + (height * height))}" ixy="0.0" ixz="0.0"
+                    iyy="${(1/12) * mass * ((length * length) + (height * height))}" iyz="0.0"
+                    izz="${(1/12) * mass * ((length * length) + (width  * width))}"/>
+        </inertial>
+        </link>
+
+        <gazebo reference="silder_2_link">  
+            <visual>  
+                <material>Gazebo/Orange</material>
+            </visual>  
+        </gazebo>
+        <joint name="silder_2_joint" type="prismatic">
+            <axis xyz="1 0 0" />
+            <parent link="silder_1_link"/>
+            <child link="silder_2_link"/>
+            <origin xyz="${pos_x} ${pos_y} ${pos_z}" rpy="0 0 0"/>
+            <limit lower="0" upper="0.18" effort="-1" velocity="-1"/>
+        </joint>
+    </xacro:macro>
+</robot>

@@ -147,7 +147,7 @@ def generate_launch_description():
     ld.add_action(gazebo_node)
     ld.add_action(gazebo_spawn_node)
     ld.add_action(node_lidar_filter)
-    # ld.add_action(rf2o_node)
+    ld.add_action(rf2o_node)
     ld.add_action(localization_node)
     ld.add_action(node_controller)
     ld.add_action(swerve_control_node)

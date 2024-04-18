@@ -3,8 +3,8 @@
     <xacro:macro name="robot_controller">
         <gazebo>
             <plugin name="gazebo_ros2_control_robot" filename="libgazebo_ros2_control.so">
-                <!-- <parameters>$(find abu_description)/config/controllers.yaml</parameters> -->
-                <parameters>$(find abu_moveit_config)/config/ros2_controllers.yaml</parameters>
+                <parameters>$(find abu_description)/config/controllers.yaml</parameters>
+                <!-- <parameters>$(find abu_moveit_config)/config/ros2_controllers.yaml</parameters> -->
             </plugin>
         </gazebo>
     </xacro:macro>

@@ -103,14 +103,69 @@
 
     <xacro:drive_controller/> 
 
+    <!-- TELESCOPE -->
+    <!-- <xacro:include filename="$(find abu_description)/urdf/telescope/silder_1.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/telescope/silder_2.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/telescope/silder_wrist.urdf.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/telescope/tele_hand.urdf.xacro" />
+
+    <xacro:silder_1
+    length="${silder_1_length}"
+    width="${silder_1_width}"
+    height="${silder_1_height}"
+    pos_x="${silder_1_pos_x}"
+    pos_y="${silder_1_pos_y}"
+    pos_z="${silder_1_pos_z}"
+    mass="${silder_1_mass}"
+    />
+    <xacro:silder_2
+    length="${silder_2_length}"
+    width="${silder_2_width}"
+    height="${silder_2_height}"
+    pos_x="${silder_2_pos_x}"
+    pos_y="${silder_2_pos_y}"
+    pos_z="${silder_2_pos_z}"
+    mass="${silder_2_mass}"
+    />
+    <xacro:silder_wrist
+    length="${silder_wrist_length}"
+    width="${silder_wrist_width}"
+    height="${silder_wrist_height}"
+    pos_x="${silder_wrist_pos_x}"
+    pos_y="${silder_wrist_pos_y}"
+    pos_z="${silder_wrist_pos_z}"
+    mass="${silder_wrist_mass}"
+    />
+    <xacro:tele_hand
+    side="right"
+    length="${silder_hand_length}"
+    width="${silder_hand_width}"
+    height="${silder_hand_height}"
+    pos_x="${silder_hand_pos_x}"
+    pos_y="${silder_hand_pos_y}"
+    pos_z="${silder_hand_pos_z}"
+    mass="${silder_hand_mass}"
+    />
+    <xacro:tele_hand
+    side="left"
+    length="${silder_hand_length}"
+    width="${silder_hand_width}"
+    height="${silder_hand_height}"
+    pos_x="${silder_hand_pos_x - 0.004}"
+    pos_y="${-silder_hand_pos_y}"
+    pos_z="${silder_hand_pos_z}"
+    mass="${silder_hand_mass}"
+    /> -->
+
+
     <!-- GRIPPER -->
-    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper.urdf.xacro" />
+    <!-- <xacro:include filename="$(find abu_description)/urdf/gripper/gripper.urdf.xacro" />
     <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_df1.transmission.xacro" />
     <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_df2.transmission.xacro" />
     <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_wrist.transmission.xacro" />
-    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_hand.transmission.xacro" />
+    <xacro:include filename="$(find abu_description)/urdf/gripper/gripper_hand.transmission.xacro" /> -->
 
-    <xacro:gripper
+    <!-- <xacro:gripper
         side="right"
         mass="${gripper_mass}"
         length1="${gripper_df1_length}"
@@ -164,7 +219,7 @@
         pos_x4="${gripper_hand_pos_x}"
         pos_y4="${gripper_hand_pos_y}"
         pos_z4="${gripper_hand_pos_z}"
-    />
+    /> -->
 
     <!-- <ros2_control name="gripper_robot_gazebo_system" type="system">
         <hardware>

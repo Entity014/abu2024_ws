@@ -19,7 +19,7 @@
         </collision>
 
         <inertial>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <origin xyz="0.145 0 0" rpy="0 0 0"/>
             <mass value="${mass}"/>
             <inertia ixx="${(1/12) * mass * ((width  * width)  + (height * height))}" ixy="0.0" ixz="0.0"
                     iyy="${(1/12) * mass * ((length * length) + (height * height))}" iyz="0.0"

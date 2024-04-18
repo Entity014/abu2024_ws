@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:property name="base_length" value="0.61" />
+    <xacro:property name="base_width" value="0.63" />
+    <xacro:property name="base_height" value="0.1" />
+    <xacro:property name="base_mass" value="10" />
+
+    <xacro:property name="wheel_dir_radius" value="0.046" />
+    <xacro:property name="wheel_dir_width" value="0.05" />
+    <xacro:property name="wheel_rot_radius" value="0.07" />
+    <xacro:property name="wheel_rot_width" value="0.067" />
+    <xacro:property name="wheel_pos_x" value="0.228" />
+    <xacro:property name="wheel_pos_y" value="0.228" />
+    <xacro:property name="wheel_pos_z" value="0.08" />
+    <xacro:property name="wheel_dir_pos_z" value="-0.165" />
+    <xacro:property name="wheel_mass" value="0.5" />
+    <xacro:property name="wheel_torque" value="20" />
+
+    <xacro:property name="silder_1_length" value="0.505" />
+    <xacro:property name="silder_1_width" value="0.035" />
+    <xacro:property name="silder_1_height" value="0.035" />
+    <xacro:property name="silder_1_pos_x" value="-0.3" />
+    <xacro:property name="silder_1_pos_y" value="0" />
+    <xacro:property name="silder_1_pos_z" value="0.04" />
+    <xacro:property name="silder_1_mass" value="0.1" />
+    <xacro:property name="silder_2_length" value="0.035" />
+    <xacro:property name="silder_2_width" value="0.03" />
+    <xacro:property name="silder_2_height" value="0.03" />
+    <xacro:property name="silder_2_pos_x" value="0.24" />
+    <xacro:property name="silder_2_pos_y" value="0" />
+    <xacro:property name="silder_2_pos_z" value="0" />
+    <xacro:property name="silder_2_mass" value="0.1" />
+    <xacro:property name="silder_wrist_length" value="0.11" />
+    <xacro:property name="silder_wrist_width" value="0.085" />
+    <xacro:property name="silder_wrist_height" value="0.085" />
+    <xacro:property name="silder_wrist_pos_x" value="0.25" />
+    <xacro:property name="silder_wrist_pos_y" value="0" />
+    <xacro:property name="silder_wrist_pos_z" value="0" />
+    <xacro:property name="silder_wrist_mass" value="0.1" />
+    <xacro:property name="silder_hand_length" value="0.22" />
+    <xacro:property name="silder_hand_width" value="0.22" />
+    <xacro:property name="silder_hand_height" value="0.125" />
+    <xacro:property name="silder_hand_pos_x" value="0.004" />
+    <xacro:property name="silder_hand_pos_y" value="-0.022" />
+    <xacro:property name="silder_hand_pos_z" value="0.03" />
+    <xacro:property name="silder_hand_mass" value="0.1" />
+
+
+
+    <xacro:property name="laser_pose">
+        <origin xyz="0.25 0 -0.055" rpy="0 0 0"/>
+    </xacro:property>
+
+    <xacro:property name="depth_sensor_pose">
+        <origin xyz="0.3 0 0" rpy="0 0 0"/>
+    </xacro:property>
+</robot>

@@ -5,10 +5,10 @@
         
         <link name="base_link">
         <visual>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <origin xyz="0 0 0.01" rpy="0 0 ${-pi/2}"/>
             <geometry>
-            <box size="${length} ${width} ${height}"/>
-            <!-- <mesh filename="package://jinbot_core/urdf/model/All_robot_4_no_wheel.STL" scale="0.001 0.001 0.001"/> -->
+                <box size="${length} ${width} ${height}"/>
+                <!-- <mesh filename="package://abu_description/urdf/model/base.dae" scale="1 1 1"/> -->
             </geometry>
             <material name="yellow">
             <color rgba="0.8784 0.6627 0.6627 1.0"/>
@@ -16,9 +16,10 @@
         </visual>
         
         <collision>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <origin xyz="0 0 0.1" rpy="0 0 ${-pi/2}"/>
             <geometry>
-            <box size="${length} ${width} ${height}"/>
+                <box size="${length} ${width} ${height}"/>
+                <!-- <mesh filename="package://abu_description/urdf/model/base.dae" scale="1 1 1"/> -->
             </geometry>
         </collision>
 

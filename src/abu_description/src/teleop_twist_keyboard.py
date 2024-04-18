@@ -228,8 +228,8 @@ def main():
                         left_arm = [dir_left, 1.57, 1.57]
                         state_left_arm = 1
                     elif state_left_arm == 1:
-                        # left_arm = [dir_left, -1.256, 1.57]
-                        left_arm = [dir_left, 0.0, 1.57]
+                        left_arm = [dir_left, -1.256, 1.57]
+                        # left_arm = [dir_left, 0.0, 1.57]
                         state_left_arm = 0
                 elif gripperBindings[key] == 2:
                     if state_right_arm == 0:
@@ -241,11 +241,11 @@ def main():
                 elif gripperBindings[key] == 3:
                     if state_left_hand == 0:
                         left_hand = True
-                        client_attach.call_async(request_attach)
+                        # client_attach.call_async(request_attach)
                         state_left_hand = 1
                     elif state_left_hand == 1:
                         left_hand = False
-                        client_detach.call_async(request_detach)
+                        # client_detach.call_async(request_detach)
                         state_left_hand = 0
                 elif gripperBindings[key] == 4:
                     if state_right_hand == 0:

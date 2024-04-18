@@ -43,8 +43,8 @@ def generate_launch_description():
             "joint_state_broadcaster",
             "steering_controller",
             "wheel_controller",
-            "left_gripper_controller",
-            "right_gripper_controller",
+            # "left_gripper_controller",
+            # "right_gripper_controller",
         ],
         condition=IfCondition(LaunchConfiguration("publish_controller")),
     )
@@ -61,11 +61,11 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 name="publish_controller",
-                default_value="true",
+                default_value="false",
                 description="Launch controller_manager",
             ),
             DeclareLaunchArgument(
-                name="rviz", default_value="false", description="Run rviz"
+                name="rviz", default_value="true", description="Run rviz"
             ),
             DeclareLaunchArgument(
                 name="use_sim_time",
@@ -99,11 +99,12 @@ def generate_launch_description():
                 name="swerve_drive_control",
                 output="screen",
             ),
-            RegisterEventHandler(
-                event_handler=OnProcessExit(
-                    target_action=node_controller,
-                    on_exit=[node_rviz],
-                )
-            ),
+            node_rviz,
+            # RegisterEventHandler(
+            #     event_handler=OnProcessExit(
+            #         target_action=node_controller,
+            #         on_exit=[node_rviz],
+            #     )
+            # ),
         ]
     )

@@ -1,6 +1,5 @@
 #ifndef DRIVE_OUTPUT_H
 #define DRIVE_OUTPUT_H
-#include "robot.h"
 
 /*
 ROBOT ORIENTATION
@@ -10,52 +9,33 @@ ROBOT ORIENTATION
          BACK
 */
 
-#ifdef USE_SMILE_DRIVER
-// INVERT DIR MOTOR DIRECTIONS
-#define MOTOR1_DIR_INV false
-#define MOTOR2_DIR_INV false
-#define MOTOR3_DIR_INV false
-#define MOTOR4_DIR_INV false
+// INVERT MOTOR DIRECTIONS
+#define MOTOR1_INV true
+#define MOTOR2_INV false
+#define MOTOR3_INV true
+#define MOTOR4_INV true
 
-#define MOTOR1_DIR_PWM -1
-#define MOTOR1_DIR_IN_A -1
-#define MOTOR1_DIR_IN_B -1
+#define MOTOR1_PWM 14
+#define MOTOR1_IN_A 15
+#define MOTOR1_IN_B 16
 
-#define MOTOR2_DIR_PWM -1
-#define MOTOR2_DIR_IN_A -1
-#define MOTOR2_DIR_IN_B -1
+#define MOTOR2_PWM 8
+#define MOTOR2_IN_A 9
+#define MOTOR2_IN_B 10
 
-#define MOTOR3_DIR_PWM -1
-#define MOTOR3_DIR_IN_A -1
-#define MOTOR3_DIR_IN_B -1
+#define MOTOR3_PWM 5
+#define MOTOR3_IN_A 6
+#define MOTOR3_IN_B 7
 
-#define MOTOR4_DIR_PWM -1
-#define MOTOR4_DIR_IN_A -1
-#define MOTOR4_DIR_IN_B -1
+#define MOTOR4_PWM 2
+#define MOTOR4_IN_A 3
+#define MOTOR4_IN_B 4
 
-#ifdef BASE == SWERVE
-// INVERT ROT MOTOR DIRECTIONS
-#define MOTOR1_ROT_INV false
-#define MOTOR2_ROT_INV false
-#define MOTOR3_ROT_INV false
-#define MOTOR4_ROT_INV false
+#define SERVO1 22
+#define SERVO2 23
+#define SERVO3 24
+#define SERVO4 25
 
-#define MOTOR1_ROT_PWM -1
-#define MOTOR1_ROT_IN_A -1
-#define MOTOR1_ROT_IN_B -1
-
-#define MOTOR2_ROT_PWM -1
-#define MOTOR2_ROT_IN_A -1
-#define MOTOR2_ROT_IN_B -1
-
-#define MOTOR3_ROT_PWM -1
-#define MOTOR3_ROT_IN_A -1
-#define MOTOR3_ROT_IN_B -1
-
-#define MOTOR4_ROT_PWM -1
-#define MOTOR4_ROT_IN_A -1
-#define MOTOR4_ROT_IN_B -1
-#endif
-#endif
+#define EMERGENCY 32
 
 #endif

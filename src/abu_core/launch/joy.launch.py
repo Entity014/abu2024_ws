@@ -13,18 +13,20 @@ def generate_launch_description():
         [FindPackageShare("abu_core"), "config", "params.yaml"]
     )
 
+    node_microros = Node(
+        package="micro_ros_agent",
+        executable="micro_ros_agent",
+        output="screen",
+        arguments=["serial", "--dev", "/dev/ttyACM0"],
+    )
     node_joy = Node(package="joy", executable="joy_node")
     node_joy_drive = Node(
         package="abu_core",
-        executable="joy_node",
+        executable="joy_drive",
         parameters=[function_config_path],
-    )
-    node_joy_gripper = Node(
-        package="abu_description",
-        executable="gripper_control.py",
     )
     ld.add_action(node_joy)
     ld.add_action(node_joy_drive)
-    ld.add_action(node_joy_gripper)
+    ld.add_action(node_microros)
 
     return ld
