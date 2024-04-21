@@ -8,20 +8,12 @@
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 
-#include <nav_msgs/msg/odometry.h>
-#include <sensor_msgs/msg/imu.h>
+#include <std_msgs/msg/string.h>
+#include <std_msgs/msg/int16_multi_array.h>
 #include <geometry_msgs/msg/twist.h>
-#include <geometry_msgs/msg/vector3.h>
 
 #include "config.h"
 #include "motor.h"
-#include "kinematics.h"
-#include "pid.h"
-#include "odometry.h"
-#include "imu.h"
-#define ENCODER_USE_INTERRUPTS
-#define ENCODER_OPTIMIZE_INTERRUPTS
-#include "encoder.h"
 
 #define RCCHECK(fn)                  \
     {                                \
@@ -55,19 +47,15 @@
 
 //------------------------------ < Define > -------------------------------------//
 
-rcl_publisher_t debug_motor_publisher;
-rcl_publisher_t debug_encoder_publisher;
-rcl_publisher_t debug_heading_publisher;
-rcl_publisher_t odom_publisher;
-rcl_publisher_t imu_publisher;
-rcl_subscription_t twist_subscriber;
+rcl_publisher_t debug_publisher;
+rcl_publisher_t color_publisher;
+rcl_subscription_t arm_subscriber;
+rcl_subscription_t hand_subscriber;
 
-nav_msgs__msg__Odometry odom_msg;
-sensor_msgs__msg__Imu imu_msg;
-geometry_msgs__msg__Twist twist_msg;
-geometry_msgs__msg__Twist debug_motor_msg;
-geometry_msgs__msg__Twist debug_encoder_msg;
-geometry_msgs__msg__Twist debug_heading_msg;
+geometry_msgs__msg__Twist debug_msg;
+std_msgs__msg__String arm_msg;
+std_msgs__msg__Int16MultiArray hand_msg;
+std_msgs__msg__Int16MultiArray color_msg;
 
 rclc_executor_t executor;
 rclc_support_t support;
@@ -77,8 +65,6 @@ rcl_timer_t control_timer;
 rcl_init_options_t init_options;
 
 unsigned long long time_offset = 0;
-unsigned long prev_cmd_time = 0;
-unsigned long prev_odom_update = 0;
 
 enum states
 {
@@ -88,46 +74,26 @@ enum states
     AGENT_DISCONNECTED
 } state;
 
-Encoder motor1_encoder(MOTOR1_ENCODER_A, MOTOR1_ENCODER_B, COUNTS_PER_REV1, MOTOR1_ENCODER_INV);
-Encoder motor2_encoder(MOTOR2_ENCODER_A, MOTOR2_ENCODER_B, COUNTS_PER_REV2, MOTOR2_ENCODER_INV);
-Encoder motor3_encoder(MOTOR3_ENCODER_A, MOTOR3_ENCODER_B, COUNTS_PER_REV3, MOTOR3_ENCODER_INV);
-Encoder motor4_encoder(MOTOR4_ENCODER_A, MOTOR4_ENCODER_B, COUNTS_PER_REV4, MOTOR4_ENCODER_INV);
+struct rgb_colors
+{
+    int r, g, b;
+};
 
 Motor motor1_controller(PWM_FREQUENCY, PWM_BITS, MOTOR1_INV, MOTOR1_PWM, MOTOR1_IN_A, MOTOR1_IN_B);
-Motor motor2_controller(PWM_FREQUENCY, PWM_BITS, MOTOR2_INV, MOTOR2_PWM, MOTOR2_IN_A, MOTOR2_IN_B);
-Motor motor3_controller(PWM_FREQUENCY, PWM_BITS, MOTOR3_INV, MOTOR3_PWM, MOTOR3_IN_A, MOTOR3_IN_B);
-Motor motor4_controller(PWM_FREQUENCY, PWM_BITS, MOTOR4_INV, MOTOR4_PWM, MOTOR4_IN_A, MOTOR4_IN_B);
 
 PWMServo servo1_controller;
 PWMServo servo2_controller;
-PWMServo servo3_controller;
-PWMServo servo4_controller;
-
-PID motor1_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
-PID motor2_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
-PID motor3_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
-PID motor4_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
-
-Kinematics kinematics(
-    Kinematics::SWERVE,
-    MOTOR_MAX_RPM,
-    MAX_RPM_RATIO,
-    RPM_RATIO,
-    WHEEL_DIAMETER,
-    LR_WHEELS_DISTANCE);
-
-Odometry odometry;
-IMU imu;
 
 //------------------------------ < Fuction Prototype > ------------------------------//
 
 void flashLED(int n_times);
 void rclErrorLoop();
 void syncTime();
-void moveBase();
+void commandGripper();
 void publishData();
 bool createEntities();
 bool destroyEntities();
+rgb_colors GetColors();
 struct timespec getTime();
 
 //------------------------------ < Main > -------------------------------------//
@@ -135,28 +101,24 @@ struct timespec getTime();
 void setup()
 {
     pinMode(LED_PIN, OUTPUT);
-    pinMode(EMERGENCY, OUTPUT);
-
-    bool imu_ok = imu.init();
-    if (!imu_ok)
-    {
-        while (1)
-        {
-            flashLED(3);
-        }
-    }
 
     Serial.begin(115200);
     set_microros_serial_transports(Serial);
+    pinMode(TOP_LIM_SWITCH, INPUT_PULLUP);
+    pinMode(BOTTOM_LIM_SWITCH, INPUT_PULLUP);
+    pinMode(COLOR_S0, OUTPUT);
+    pinMode(COLOR_S1, OUTPUT);
+    pinMode(COLOR_S2, OUTPUT);
+    pinMode(COLOR_S3, OUTPUT);
+    pinMode(COLOR_OUT, INPUT);
+
+    digitalWrite(COLOR_S0, HIGH);
+    digitalWrite(COLOR_S1, HIGH);
 
     servo1_controller.attach(SERVO1);
     servo2_controller.attach(SERVO2);
-    servo3_controller.attach(SERVO3);
-    servo4_controller.attach(SERVO4);
-    servo1_controller.write(90);
-    servo2_controller.write(90);
-    servo3_controller.write(90);
-    servo4_controller.write(90);
+    servo1_controller.write(10);
+    servo2_controller.write(0);
 }
 
 void loop()
@@ -177,16 +139,12 @@ void loop()
         EXECUTE_EVERY_N_MS(200, state = (RMW_RET_OK == rmw_uros_ping_agent(100, 1)) ? AGENT_CONNECTED : AGENT_DISCONNECTED;);
         if (state == AGENT_CONNECTED)
         {
-            digitalWrite(EMERGENCY, HIGH);
             rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
         }
         break;
     case AGENT_DISCONNECTED:
-        servo1_controller.write(90);
-        servo2_controller.write(90);
-        servo3_controller.write(90);
-        servo4_controller.write(90);
-        digitalWrite(EMERGENCY, LOW);
+        servo1_controller.write(10);
+        servo2_controller.write(0);
         destroyEntities();
         state = WAITING_AGENT;
         break;
@@ -202,16 +160,20 @@ void controlCallback(rcl_timer_t *timer, int64_t last_call_time)
     RCLC_UNUSED(last_call_time);
     if (timer != NULL)
     {
-        moveBase();
+        commandGripper();
         publishData();
     }
 }
 
-void twistCallback(const void *msgin)
+void armCallback(const void *msgin)
 {
     digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+}
 
-    prev_cmd_time = millis();
+void handCallback(const void *msgin)
+{
+    servo1_controller.write(hand_msg.data.data[0]);
+    servo2_controller.write(hand_msg.data.data[1]);
 }
 
 bool createEntities()
@@ -223,42 +185,44 @@ bool createEntities()
     rcl_init_options_set_domain_id(&init_options, 10);
 
     rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator);
-
-    // create node
     RCCHECK(rclc_node_init_default(&node, "int32_publisher_rclc", "", &support));
-    // create odometry publisher
+
     RCCHECK(rclc_publisher_init_default(
-        &odom_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(nav_msgs, msg, Odometry),
-        "odom/unfiltered"));
-    RCCHECK(rclc_publisher_init_default(
-        &debug_motor_publisher,
+        &debug_publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-        "debug/motor"));
+        "debug/gripper"));
+
     RCCHECK(rclc_publisher_init_default(
-        &debug_encoder_publisher,
+        &color_publisher,
         &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-        "debug/encoder"));
-    RCCHECK(rclc_publisher_init_default(
-        &debug_heading_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-        "debug/heading"));
-    // create IMU publisher
-    RCCHECK(rclc_publisher_init_default(
-        &imu_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
-        "imu/data"));
-    // create twist command subscriber
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int16MultiArray),
+        "gripper/color"));
+
+    color_msg.data.capacity = 3;
+    color_msg.data.size = 3;
+    color_msg.data.data = (int16_t *)malloc(color_msg.data.capacity * sizeof(int16_t));
+
     RCCHECK(rclc_subscription_init_default(
-        &twist_subscriber,
+        &arm_subscriber,
         &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-        "cmd_vel"));
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+        "gripper/arm"));
+
+    arm_msg.data.capacity = 10;
+    arm_msg.data.size = 10;
+    arm_msg.data.data = (char *)malloc(arm_msg.data.capacity * sizeof(char));
+
+    RCCHECK(rclc_subscription_init_default(
+        &hand_subscriber,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int16MultiArray),
+        "gripper/hand"));
+
+    hand_msg.data.capacity = 2;
+    hand_msg.data.size = 2;
+    hand_msg.data.data = (int16_t *)malloc(hand_msg.data.capacity * sizeof(int16_t));
+
     // create timer for actuating the motors at 50 Hz (1000/20)
     const unsigned int control_timeout = 20;
     RCCHECK(rclc_timer_init_default(
@@ -266,13 +230,20 @@ bool createEntities()
         &support,
         RCL_MS_TO_NS(control_timeout),
         controlCallback));
+
     executor = rclc_executor_get_zero_initialized_executor();
-    RCCHECK(rclc_executor_init(&executor, &support.context, 2, &allocator));
+    RCCHECK(rclc_executor_init(&executor, &support.context, 3, &allocator));
     RCCHECK(rclc_executor_add_subscription(
         &executor,
-        &twist_subscriber,
-        &twist_msg,
-        &twistCallback,
+        &arm_subscriber,
+        &arm_msg,
+        &armCallback,
+        ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(
+        &executor,
+        &hand_subscriber,
+        &hand_msg,
+        &handCallback,
         ON_NEW_DATA));
     RCCHECK(rclc_executor_add_timer(&executor, &control_timer));
 
@@ -288,12 +259,10 @@ bool destroyEntities()
     rmw_context_t *rmw_context = rcl_context_get_rmw_context(&support.context);
     (void)rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0);
 
-    rcl_publisher_fini(&debug_motor_publisher, &node);
-    rcl_publisher_fini(&debug_encoder_publisher, &node);
-    rcl_publisher_fini(&debug_heading_publisher, &node);
-    rcl_publisher_fini(&odom_publisher, &node);
-    rcl_publisher_fini(&imu_publisher, &node);
-    rcl_subscription_fini(&twist_subscriber, &node);
+    rcl_publisher_fini(&debug_publisher, &node);
+    rcl_publisher_fini(&color_publisher, &node);
+    rcl_subscription_fini(&hand_subscriber, &node);
+    rcl_subscription_fini(&arm_subscriber, &node);
     rcl_node_fini(&node);
     rcl_timer_fini(&control_timer);
     rclc_executor_fini(&executor);
@@ -304,90 +273,42 @@ bool destroyEntities()
     return true;
 }
 
-void moveBase()
+void commandGripper()
 {
-    if (((millis() - prev_cmd_time) >= 200))
+    if ((!digitalRead(TOP_LIM_SWITCH)) == HIGH && strcmp(arm_msg.data.data, "TOP") == 0)
     {
-        twist_msg.linear.x = 0.0;
-        twist_msg.linear.y = 0.0;
-        twist_msg.angular.z = 0.0;
-
-        digitalWrite(LED_PIN, HIGH);
+        motor1_controller.brake();
+    }
+    else if ((!digitalRead(TOP_LIM_SWITCH)) == LOW && strcmp(arm_msg.data.data, "TOP") == 0)
+    {
+        motor1_controller.spin(200);
+    }
+    else if ((!digitalRead(BOTTOM_LIM_SWITCH)) == HIGH && strcmp(arm_msg.data.data, "BOTTOM") == 0)
+    {
+        motor1_controller.brake();
+    }
+    else if ((!digitalRead(BOTTOM_LIM_SWITCH)) == LOW && strcmp(arm_msg.data.data, "BOTTOM") == 0)
+    {
+        motor1_controller.spin(-200);
     }
 
-    Kinematics::rpm req_rpm = kinematics.getRPM(
-        twist_msg.linear.x,
-        twist_msg.linear.y,
-        twist_msg.angular.z);
-    Kinematics::heading req_heading = kinematics.getHeading(
-        twist_msg.linear.x,
-        twist_msg.linear.y,
-        twist_msg.angular.z);
+    rgb_colors rgb;
+    rgb = GetColors();
+    color_msg.data.data[0] = rgb.r; // Example value
+    color_msg.data.data[1] = rgb.g; // Example value
+    color_msg.data.data[2] = rgb.b; // Example value
 
-    float current_rpm1 = motor1_encoder.getRPM();
-    float current_rpm2 = motor2_encoder.getRPM();
-    float current_rpm3 = motor3_encoder.getRPM();
-    float current_rpm4 = motor4_encoder.getRPM();
-    float current_heading1 = 90 + map(req_heading.motor1 * RAD_TO_DEG, -180, 180, -40, 40);
-    float current_heading2 = 90 + map(req_heading.motor2 * RAD_TO_DEG, -180, 180, -40, 40);
-    float current_heading3 = 90 + map(req_heading.motor3 * RAD_TO_DEG, -180, 180, -40, 40);
-    float current_heading4 = 90 + map(req_heading.motor4 * RAD_TO_DEG, -180, 180, -40, 40);
-    debug_motor_msg.linear.x = req_rpm.motor1;
-    debug_motor_msg.linear.y = req_rpm.motor2;
-    debug_motor_msg.linear.z = req_rpm.motor3;
-    debug_motor_msg.angular.x = req_rpm.motor4;
-    debug_encoder_msg.linear.x = current_rpm1;
-    debug_encoder_msg.linear.y = current_rpm2;
-    debug_encoder_msg.linear.z = current_rpm3;
-    debug_encoder_msg.angular.x = current_rpm4;
-    debug_heading_msg.linear.x = current_heading1;
-    debug_heading_msg.linear.y = current_heading2;
-    debug_heading_msg.linear.z = current_heading3;
-    debug_heading_msg.angular.x = current_heading4;
-    servo1_controller.write(current_heading1);
-    servo2_controller.write(current_heading2);
-    servo3_controller.write(current_heading3);
-    servo4_controller.write(current_heading4);
-    motor1_controller.spin(motor1_pid.compute(req_rpm.motor1, current_rpm1));
-    motor2_controller.spin(motor2_pid.compute(req_rpm.motor2, current_rpm2));
-    motor3_controller.spin(motor3_pid.compute(req_rpm.motor3, current_rpm3));
-    motor4_controller.spin(motor4_pid.compute(req_rpm.motor4, current_rpm4));
-
-    Kinematics::velocities current_vel = kinematics.getVelocities(
-        req_heading,
-        current_rpm1,
-        current_rpm2,
-        current_rpm3,
-        current_rpm4);
-
-    unsigned long now = millis();
-    float vel_dt = (now - prev_odom_update) / 1000.0;
-    prev_odom_update = now;
-    odometry.update(
-        vel_dt,
-        current_vel.linear_x,
-        current_vel.linear_y,
-        current_vel.angular_z);
+    debug_msg.linear.x = 0.0;
+    debug_msg.linear.y = !digitalRead(TOP_LIM_SWITCH);
+    debug_msg.linear.z = !digitalRead(BOTTOM_LIM_SWITCH);
 }
 
 void publishData()
 {
-    odom_msg = odometry.getData();
-    imu_msg = imu.getData();
-
     struct timespec time_stamp = getTime();
 
-    odom_msg.header.stamp.sec = time_stamp.tv_sec;
-    odom_msg.header.stamp.nanosec = time_stamp.tv_nsec;
-
-    imu_msg.header.stamp.sec = time_stamp.tv_sec;
-    imu_msg.header.stamp.nanosec = time_stamp.tv_nsec;
-
-    RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&odom_publisher, &odom_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&debug_motor_publisher, &debug_motor_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&debug_encoder_publisher, &debug_encoder_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&debug_heading_publisher, &debug_heading_msg, NULL));
+    RCSOFTCHECK(rcl_publish(&debug_publisher, &debug_msg, NULL));
+    RCSOFTCHECK(rcl_publish(&color_publisher, &color_msg, NULL));
 }
 
 void syncTime()
@@ -430,4 +351,17 @@ void flashLED(int n_times)
         delay(150);
     }
     delay(1000);
+}
+
+rgb_colors GetColors()
+{
+    rgb_colors rgb;
+    digitalWrite(COLOR_S2, LOW);
+    digitalWrite(COLOR_S3, LOW);
+    rgb.r = pulseIn(COLOR_OUT, digitalRead(COLOR_OUT) == HIGH ? LOW : HIGH);
+    digitalWrite(COLOR_S3, HIGH);
+    rgb.b = pulseIn(COLOR_OUT, digitalRead(COLOR_OUT) == HIGH ? LOW : HIGH);
+    digitalWrite(COLOR_S2, HIGH);
+    rgb.g = pulseIn(COLOR_OUT, digitalRead(COLOR_OUT) == HIGH ? LOW : HIGH);
+    return rgb;
 }

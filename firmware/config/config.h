@@ -5,4 +5,8 @@
 #include "custom/drive.h"
 #endif
 
+#ifdef USE_GRIPPER_CONFIG
+#include "custom/gripper.h"
+#endif
+
 #endif

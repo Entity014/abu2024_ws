@@ -32,4 +32,9 @@ ROBOT ORIENTATION
 #define MOTOR3_ENCODER_INV true
 #define MOTOR4_ENCODER_INV false
 
+#define AMP_METER 20
+#define VOLT_METER 21
+
+#define START 33
+
 #endif

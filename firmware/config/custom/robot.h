@@ -4,7 +4,7 @@
 #define LED_PIN 13
 
 #define SWERVE_DRIVE_ROBOT
-#define USE_MPU9250_IMU
+// #define USE_MPU9250_IMU
 
 #define K_P 0.1
 #define K_I 0.03

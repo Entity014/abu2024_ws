@@ -2,14 +2,18 @@
 #include <micro_ros_platformio.h>
 #include <stdio.h>
 #include <PWMServo.h>
+#include <WinsonLib.h>
 
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 
-#include <nav_msgs/msg/odometry.h>
+#include <std_msgs/msg/int8.h>
+#include <std_msgs/msg/string.h>
 #include <sensor_msgs/msg/imu.h>
+#include <std_msgs/msg/float32.h>
+#include <nav_msgs/msg/odometry.h>
 #include <geometry_msgs/msg/twist.h>
 #include <geometry_msgs/msg/vector3.h>
 
@@ -55,15 +59,23 @@
 
 //------------------------------ < Define > -------------------------------------//
 
+rcl_publisher_t amp_publisher;
+rcl_publisher_t odom_publisher;
+rcl_publisher_t volt_publisher;
+rcl_publisher_t start_publisher;
 rcl_publisher_t debug_motor_publisher;
 rcl_publisher_t debug_encoder_publisher;
 rcl_publisher_t debug_heading_publisher;
-rcl_publisher_t odom_publisher;
-rcl_publisher_t imu_publisher;
+// rcl_publisher_t imu_publisher;
 rcl_subscription_t twist_subscriber;
+rcl_subscription_t state_subscriber;
 
+std_msgs__msg__Int8 start_msg;
+std_msgs__msg__Float32 amp_msg;
+std_msgs__msg__Float32 volt_msg;
+std_msgs__msg__String state_msg;
 nav_msgs__msg__Odometry odom_msg;
-sensor_msgs__msg__Imu imu_msg;
+// sensor_msgs__msg__Imu imu_msg;
 geometry_msgs__msg__Twist twist_msg;
 geometry_msgs__msg__Twist debug_motor_msg;
 geometry_msgs__msg__Twist debug_encoder_msg;
@@ -73,6 +85,7 @@ rclc_executor_t executor;
 rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
+rcl_timer_t rgb_timer;
 rcl_timer_t control_timer;
 rcl_init_options_t init_options;
 
@@ -117,7 +130,9 @@ Kinematics kinematics(
     LR_WHEELS_DISTANCE);
 
 Odometry odometry;
-IMU imu;
+// IMU imu;
+
+WCS WCS1 = WCS(0, _WCS1700);
 
 //------------------------------ < Fuction Prototype > ------------------------------//
 
@@ -125,6 +140,7 @@ void flashLED(int n_times);
 void rclErrorLoop();
 void syncTime();
 void moveBase();
+void readSensor();
 void publishData();
 bool createEntities();
 bool destroyEntities();
@@ -134,17 +150,20 @@ struct timespec getTime();
 
 void setup()
 {
+    WCS1.Reset();
     pinMode(LED_PIN, OUTPUT);
+    pinMode(VOLT_METER, INPUT);
     pinMode(EMERGENCY, OUTPUT);
+    pinMode(START, INPUT_PULLUP);
 
-    bool imu_ok = imu.init();
-    if (!imu_ok)
-    {
-        while (1)
-        {
-            flashLED(3);
-        }
-    }
+    // bool imu_ok = imu.init();
+    // if (!imu_ok)
+    // {
+    //     while (1)
+    //     {
+    //         flashLED(3);
+    //     }
+    // }
 
     Serial.begin(115200);
     set_microros_serial_transports(Serial);
@@ -202,8 +221,17 @@ void controlCallback(rcl_timer_t *timer, int64_t last_call_time)
     RCLC_UNUSED(last_call_time);
     if (timer != NULL)
     {
+        readSensor();
         moveBase();
         publishData();
+    }
+}
+
+void rgbCallback(rcl_timer_t *timer, int64_t last_call_time)
+{
+    RCLC_UNUSED(last_call_time);
+    if (timer != NULL)
+    {
     }
 }
 
@@ -212,6 +240,10 @@ void twistCallback(const void *msgin)
     digitalWrite(LED_PIN, !digitalRead(LED_PIN));
 
     prev_cmd_time = millis();
+}
+
+void stateCallback(const void *msgin)
+{
 }
 
 bool createEntities()
@@ -233,32 +265,60 @@ bool createEntities()
         ROSIDL_GET_MSG_TYPE_SUPPORT(nav_msgs, msg, Odometry),
         "odom/unfiltered"));
     RCCHECK(rclc_publisher_init_default(
+        &volt_publisher,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
+        "voltage"));
+    RCCHECK(rclc_publisher_init_default(
+        &amp_publisher,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
+        "ampere"));
+    RCCHECK(rclc_publisher_init_default(
+        &start_publisher,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int8),
+        "button/start"));
+
+    RCCHECK(rclc_publisher_init_default(
         &debug_motor_publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "debug/motor"));
+
     RCCHECK(rclc_publisher_init_default(
         &debug_encoder_publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "debug/encoder"));
+
     RCCHECK(rclc_publisher_init_default(
         &debug_heading_publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "debug/heading"));
     // create IMU publisher
-    RCCHECK(rclc_publisher_init_default(
-        &imu_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
-        "imu/data"));
+    // RCCHECK(rclc_publisher_init_default(
+    //     &imu_publisher,
+    //     &node,
+    //     ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
+    //     "imu/data"));
+
     // create twist command subscriber
     RCCHECK(rclc_subscription_init_default(
         &twist_subscriber,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "cmd_vel"));
+    RCCHECK(rclc_subscription_init_default(
+        &state_subscriber,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+        "robot/state"));
+
+    state_msg.data.capacity = 10;
+    state_msg.data.size = 10;
+    state_msg.data.data = (char *)malloc(state_msg.data.capacity * sizeof(char));
     // create timer for actuating the motors at 50 Hz (1000/20)
     const unsigned int control_timeout = 20;
     RCCHECK(rclc_timer_init_default(
@@ -266,14 +326,26 @@ bool createEntities()
         &support,
         RCL_MS_TO_NS(control_timeout),
         controlCallback));
+    RCCHECK(rclc_timer_init_default(
+        &rgb_timer,
+        &support,
+        RCL_MS_TO_NS(20),
+        rgbCallback));
     executor = rclc_executor_get_zero_initialized_executor();
-    RCCHECK(rclc_executor_init(&executor, &support.context, 2, &allocator));
+    RCCHECK(rclc_executor_init(&executor, &support.context, 4, &allocator));
     RCCHECK(rclc_executor_add_subscription(
         &executor,
         &twist_subscriber,
         &twist_msg,
         &twistCallback,
         ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(
+        &executor,
+        &state_subscriber,
+        &state_msg,
+        &stateCallback,
+        ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_timer(&executor, &rgb_timer));
     RCCHECK(rclc_executor_add_timer(&executor, &control_timer));
 
     // synchronize time with the agent
@@ -291,8 +363,12 @@ bool destroyEntities()
     rcl_publisher_fini(&debug_motor_publisher, &node);
     rcl_publisher_fini(&debug_encoder_publisher, &node);
     rcl_publisher_fini(&debug_heading_publisher, &node);
+    rcl_publisher_fini(&start_publisher, &node);
     rcl_publisher_fini(&odom_publisher, &node);
-    rcl_publisher_fini(&imu_publisher, &node);
+    rcl_publisher_fini(&volt_publisher, &node);
+    rcl_publisher_fini(&amp_publisher, &node);
+    // rcl_publisher_fini(&imu_publisher, &node);
+    rcl_subscription_fini(&state_subscriber, &node);
     rcl_subscription_fini(&twist_subscriber, &node);
     rcl_node_fini(&node);
     rcl_timer_fini(&control_timer);
@@ -302,6 +378,13 @@ bool destroyEntities()
     digitalWrite(LED_PIN, HIGH);
 
     return true;
+}
+
+void readSensor()
+{
+    start_msg.data = !digitalRead(START);
+    amp_msg.data = WCS1.A_DC();
+    volt_msg.data = map((double)analogRead(VOLT_METER), 0, 1023, 0, 25);
 }
 
 void moveBase()
@@ -354,6 +437,7 @@ void moveBase()
     motor4_controller.spin(motor4_pid.compute(req_rpm.motor4, current_rpm4));
 
     Kinematics::velocities current_vel = kinematics.getVelocities(
+        req_heading,
         current_rpm1,
         current_rpm2,
         current_rpm3,
@@ -372,18 +456,21 @@ void moveBase()
 void publishData()
 {
     odom_msg = odometry.getData();
-    imu_msg = imu.getData();
+    // imu_msg = imu.getData();
 
     struct timespec time_stamp = getTime();
 
     odom_msg.header.stamp.sec = time_stamp.tv_sec;
     odom_msg.header.stamp.nanosec = time_stamp.tv_nsec;
 
-    imu_msg.header.stamp.sec = time_stamp.tv_sec;
-    imu_msg.header.stamp.nanosec = time_stamp.tv_nsec;
+    // imu_msg.header.stamp.sec = time_stamp.tv_sec;
+    // imu_msg.header.stamp.nanosec = time_stamp.tv_nsec;
 
-    RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
+    // RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
+    RCSOFTCHECK(rcl_publish(&amp_publisher, &amp_msg, NULL));
+    RCSOFTCHECK(rcl_publish(&volt_publisher, &volt_msg, NULL));
     RCSOFTCHECK(rcl_publish(&odom_publisher, &odom_msg, NULL));
+    RCSOFTCHECK(rcl_publish(&start_publisher, &start_msg, NULL));
     RCSOFTCHECK(rcl_publish(&debug_motor_publisher, &debug_motor_msg, NULL));
     RCSOFTCHECK(rcl_publish(&debug_encoder_publisher, &debug_encoder_msg, NULL));
     RCSOFTCHECK(rcl_publish(&debug_heading_publisher, &debug_heading_msg, NULL));

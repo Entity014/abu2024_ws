@@ -38,4 +38,6 @@ ROBOT ORIENTATION
 
 #define EMERGENCY 32
 
+#define RGB_LED 36
+
 #endif
