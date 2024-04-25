@@ -101,19 +101,19 @@ class RobotMainState(Node):
                 msg_gripper_arm.data = "BOTTOM"
                 msg_gripper_hand.data = [0, 110]
                 if self.team == "BLUE":
-                    msg_goal = [6.5, 0.0, 1.57]
+                    msg_goal.data = [6.5, 0.0, 1.57]
                 elif self.team == "RED":
-                    msg_goal = [6.5, 10.9, -1.57]
+                    msg_goal.data = [6.5, 10.9, -1.57]
             elif self.robot_main_state == 1:
                 if self.team == "BLUE":
-                    msg_goal = [6.5, 4.0, 0.0]
+                    msg_goal.data = [6.5, 4.0, 0.0]
                 elif self.team == "RED":
-                    msg_goal = [6.5, 6.9, 0.0]
+                    msg_goal.data = [6.5, 6.9, 0.0]
             elif self.robot_main_state == 2:
                 if self.team == "BLUE":
-                    msg_goal = [9.5, 4.0, -1.57]
+                    msg_goal.data = [9.5, 4.0, -1.57]
                 elif self.team == "RED":
-                    msg_goal = [9.5, 6.9, 1.57]
+                    msg_goal.data = [9.5, 6.9, 1.57]
             elif self.robot_main_state == 3:
                 msg_gripper_arm.data = "BOTTOM"
                 msg_gripper_hand.data = [0, 110]
