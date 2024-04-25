@@ -11,16 +11,16 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     localization_launch_path = PathJoinSubstitution(
-        [FindPackageShare("abu_core"), "launch", "localization.py"]
+        [FindPackageShare("abu_core"), "launch", "localization.launch.py"]
     )
     microros_launch_path = PathJoinSubstitution(
-        [FindPackageShare("abu_core"), "launch", "microros.py"]
+        [FindPackageShare("abu_core"), "launch", "microros.launch.py"]
     )
     navigation_launch_path = PathJoinSubstitution(
-        [FindPackageShare("abu_core"), "launch", "navigation.py"]
+        [FindPackageShare("abu_core"), "launch", "navigation.launch.py"]
     )
     state_launch_path = PathJoinSubstitution(
-        [FindPackageShare("abu_core"), "launch", "state.py"]
+        [FindPackageShare("abu_core"), "launch", "state.launch.py"]
     )
 
     launch_localization = IncludeLaunchDescription(
