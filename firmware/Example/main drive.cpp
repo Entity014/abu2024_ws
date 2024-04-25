@@ -411,10 +411,10 @@ void moveBase()
     float current_rpm2 = motor2_encoder.getRPM();
     float current_rpm3 = motor3_encoder.getRPM();
     float current_rpm4 = motor4_encoder.getRPM();
-    float current_heading1 = 90 + map(req_heading.motor1 * RAD_TO_DEG, -180, 180, -40, 40);
-    float current_heading2 = 90 + map(req_heading.motor2 * RAD_TO_DEG, -180, 180, -40, 40);
-    float current_heading3 = 90 + map(req_heading.motor3 * RAD_TO_DEG, -180, 180, -40, 40);
-    float current_heading4 = 90 + map(req_heading.motor4 * RAD_TO_DEG, -180, 180, -40, 40);
+    float current_heading1 = 90 + constrain(map(req_heading.motor1 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
+    float current_heading2 = 90 + constrain(map(req_heading.motor2 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
+    float current_heading3 = 90 + constrain(map(req_heading.motor3 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
+    float current_heading4 = 90 + constrain(map(req_heading.motor4 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
     debug_motor_msg.linear.x = req_rpm.motor1;
     debug_motor_msg.linear.y = req_rpm.motor2;
     debug_motor_msg.linear.z = req_rpm.motor3;

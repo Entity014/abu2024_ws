@@ -117,8 +117,8 @@ void setup()
 
     servo1_controller.attach(SERVO1);
     servo2_controller.attach(SERVO2);
-    servo1_controller.write(10);
-    servo2_controller.write(0);
+    servo1_controller.write(0);
+    servo2_controller.write(110);
 }
 
 void loop()
@@ -143,8 +143,8 @@ void loop()
         }
         break;
     case AGENT_DISCONNECTED:
-        servo1_controller.write(10);
-        servo2_controller.write(0);
+        servo1_controller.write(0);
+        servo2_controller.write(110);
         destroyEntities();
         state = WAITING_AGENT;
         break;
@@ -289,7 +289,7 @@ void commandGripper()
     }
     else if ((!digitalRead(BOTTOM_LIM_SWITCH)) == LOW && strcmp(arm_msg.data.data, "BOTTOM") == 0)
     {
-        motor1_controller.spin(-200);
+        motor1_controller.spin(-150);
     }
 
     rgb_colors rgb;

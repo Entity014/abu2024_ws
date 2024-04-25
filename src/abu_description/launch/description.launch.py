@@ -41,8 +41,8 @@ def generate_launch_description():
         executable="spawner",
         arguments=[
             "joint_state_broadcaster",
-            "steering_controller",
             "wheel_controller",
+            "steering_controller",
             # "left_gripper_controller",
             # "right_gripper_controller",
         ],
@@ -92,13 +92,13 @@ def generate_launch_description():
                     }
                 ],
             ),
-            node_controller,
-            Node(
-                package="abu_description",
-                executable="swerve_drive_control.py",
-                name="swerve_drive_control",
-                output="screen",
-            ),
+            # node_controller,
+            # Node(
+            #     package="abu_description",
+            #     executable="swerve_drive_control.py",
+            #     name="swerve_drive_control",
+            #     output="screen",
+            # ),
             node_rviz,
             # RegisterEventHandler(
             #     event_handler=OnProcessExit(

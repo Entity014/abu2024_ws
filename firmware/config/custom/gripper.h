@@ -11,7 +11,7 @@
 #define MOTOR1_IN_B 35
 
 #define SERVO1 15
-#define SERVO2 14
+#define SERVO2 37
 
 #define TOP_LIM_SWITCH 17
 #define BOTTOM_LIM_SWITCH 16

@@ -28,6 +28,7 @@ def generate_launch_description():
             "rviz": "false",
             "namespace": "",
             "rviz_cfg": rviz_config_path,
+            # "imu_topic": "/camera/imu",
             # Lidar
             "subscribe_scan": "true",
             "scan_topic": "/scan_filtered",
@@ -37,6 +38,7 @@ def generate_launch_description():
             "odom_topic": "/odom",
             # RGBD
             "rgb_topic": "/camera/color/image_raw",
+            # "depth_topic": "/camera/depth/color/points",
             "depth_topic": "/camera/depth/image_rect_raw",
             "camera_info_topic": "/camera/color/camera_info",
             "approx_sync": "true",

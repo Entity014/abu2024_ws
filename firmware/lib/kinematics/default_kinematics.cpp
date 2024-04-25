@@ -93,15 +93,15 @@ Kinematics::velocities SwerveDrive::calculateVelocities(SwerveDrive::heading hea
     float average_rps_a;
 
     // convert average revolutions per minute to revolutions per second
-    average_rps_x = ((float)((rpm1 * sin(heading.motor1)) + (rpm2 * sin(heading.motor2)) + (rpm3 * sin(heading.motor3)) + (rpm4 * sin(heading.motor4))) / total_wheels_) / 60.0 / rpm_ratio_; // RPM
-    vel.linear_x = average_rps_x * wheel_circumference_;                                                                                                                                      // m/s
+    average_rps_x = -((float)((rpm1 * cos(heading.motor1)) + (rpm2 * cos(heading.motor2)) + (rpm3 * cos(heading.motor3)) + (rpm4 * cos(heading.motor4))) / total_wheels_) / 60.0 / rpm_ratio_; // RPM
+    vel.linear_x = average_rps_x * wheel_circumference_;                                                                                                                                       // m/s
 
     // convert average revolutions per minute in y axis to revolutions per second
-    average_rps_y = ((float)((rpm1 * cos(heading.motor1)) + (rpm2 * cos(heading.motor2)) + (rpm3 * cos(heading.motor3)) + (rpm4 * cos(heading.motor4))) / total_wheels_) / 60.0 / rpm_ratio_; // RPM
+    average_rps_y = ((float)((rpm1 * sin(heading.motor1)) + (rpm2 * sin(heading.motor2)) + (rpm3 * sin(heading.motor3)) + (rpm4 * sin(heading.motor4))) / total_wheels_) / 60.0 / rpm_ratio_; // RPM
     vel.linear_y = average_rps_y * wheel_circumference_;                                                                                                                                      // m/s
 
     // convert average revolutions per minute to revolutions per second
-    average_rps_a = ((float)((rpm1 * sin(heading.motor1)) + (rpm2 * sin(heading.motor2)) + (rpm3 * sin(heading.motor3)) + (rpm4 * sin(heading.motor4))) / total_wheels_) / 60.0 / rpm_ratio_;
+    average_rps_a = ((float)(-(rpm1 * sin(heading.motor1)) + (rpm2 * sin(heading.motor2)) - (rpm3 * sin(heading.motor3)) + (rpm4 * sin(heading.motor4))) / total_wheels_) / 60.0 / rpm_ratio_;
     vel.angular_z = (average_rps_a * wheel_circumference_) / (wheels_y_distance_ / 2.0); //  rad/s
 
     return vel;

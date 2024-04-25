@@ -28,7 +28,7 @@
         <xacro:insert_block name="depth_sensor_pose" />
     </xacro:depth_sensor>
 
-    <xacro:robot_controller/> 
+    <!-- <xacro:robot_controller/>  -->
 
     <!-- DRIVE -->
     <xacro:include filename="$(find abu_description)/urdf/drive.urdf.xacro" />
@@ -87,7 +87,7 @@
         mass="${wheel_mass}"
     />
 
-    <ros2_control name="swerve_robot_gazebo_system" type="system">
+    <!-- <ros2_control name="swerve_robot_gazebo_system" type="system">
         <hardware>
             <plugin>gazebo_ros2_control/GazeboSystem</plugin>
         </hardware>
@@ -99,7 +99,7 @@
         <xacro:steer_transmission side="front_left" />
         <xacro:steer_transmission side="rear_left" />
         <xacro:steer_transmission side="rear_right" />
-    </ros2_control>
+    </ros2_control> -->
 
     <xacro:drive_controller/> 
 
