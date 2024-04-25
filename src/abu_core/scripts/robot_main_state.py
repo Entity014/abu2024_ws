@@ -82,18 +82,18 @@ class RobotMainState(Node):
         msg_gripper_hand = Int16MultiArray()
         if self.robot_state == "IDLE":
             self.terminal()
-            msg = Float32MultiArray()
+            msg_ip = Float32MultiArray()
             if self.team == "BLUE":
                 if self.retry == "none":
-                    msg.data = [0.0, 0.0, 0.0]
+                    msg_ip.data = [0.0, 0.0, 0.0]
                 elif self.retry == "RETRY":
-                    msg.data = [5.15, -0.05, 0.0]
+                    msg_ip.data = [5.15, -0.05, 0.0]
             elif self.team == "RED":
                 if self.retry == "none":
-                    msg.data = [0.0, 10.8, 0.0]
+                    msg_ip.data = [0.0, 10.8, 0.0]
                 elif self.retry == "RETRY":
-                    msg.data = [5.15, 10.9, 0.0]
-            self.pub_ip.publish(msg)
+                    msg_ip.data = [5.15, 10.9, 0.0]
+            self.pub_ip.publish(msg_ip)
         elif self.robot_state == "START":
             cv2.destroyAllWindows()
             msg_goal = Float32MultiArray()

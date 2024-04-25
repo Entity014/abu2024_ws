@@ -38,7 +38,10 @@ def generate_launch_description():
 
     ld.add_action(launch_microros)
     ld.add_action(launch_localization)
-    ld.add_action(launch_navigation)
+    # ld.add_action(launch_navigation)
     ld.add_action(launch_state)
 
+    os.system(
+        "gnome-terminal -e 'bash -c \"ros2 launch abu_core navigation.launch.py\"'"
+    )
     return ld

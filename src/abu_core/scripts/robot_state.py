@@ -29,7 +29,7 @@ class RobotState(Node):
     def sub_button_callback(self, msgin):
         if msgin.data != self.__previous_button:
             if msgin.data == 1:
-                state += 1
+                self.state += 1
             self.__previous_button = msgin.data
 
     def timer_callback(self):
