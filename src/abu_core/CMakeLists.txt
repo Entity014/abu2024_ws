@@ -77,9 +77,10 @@ install(TARGETS
 
 install(PROGRAMS
   scripts/imu.py
+  scripts/robot_state.py
   scripts/lidar_filter.py
   scripts/nav2_control.py
-  scripts/robot_state.py
+  scripts/ball_detection.py
   scripts/robot_main_state.py
   DESTINATION lib/${PROJECT_NAME}
 )

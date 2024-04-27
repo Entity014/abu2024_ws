@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <PWMServo.h>
 #include <WinsonLib.h>
+#include <SimpleKalmanFilter.h>
 
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
@@ -133,6 +134,8 @@ Odometry odometry;
 // IMU imu;
 
 WCS WCS1 = WCS(0, _WCS1700);
+
+SimpleKalmanFilter simpleKalmanFilter(2, 2, 0.01);
 
 //------------------------------ < Fuction Prototype > ------------------------------//
 
@@ -415,6 +418,11 @@ void moveBase()
     float current_heading2 = 90 + constrain(map(req_heading.motor2 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
     float current_heading3 = 90 + constrain(map(req_heading.motor3 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
     float current_heading4 = 90 + constrain(map(req_heading.motor4 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
+    current_rpm1 = round(simpleKalmanFilter.updateEstimate(current_rpm1));
+    current_rpm2 = round(simpleKalmanFilter.updateEstimate(current_rpm2));
+    current_rpm3 = round(simpleKalmanFilter.updateEstimate(current_rpm3));
+    current_rpm4 = round(simpleKalmanFilter.updateEstimate(current_rpm4));
+
     debug_motor_msg.linear.x = req_rpm.motor1;
     debug_motor_msg.linear.y = req_rpm.motor2;
     debug_motor_msg.linear.z = req_rpm.motor3;
@@ -423,10 +431,11 @@ void moveBase()
     debug_encoder_msg.linear.y = current_rpm2;
     debug_encoder_msg.linear.z = current_rpm3;
     debug_encoder_msg.angular.x = current_rpm4;
-    debug_heading_msg.linear.x = current_heading1;
-    debug_heading_msg.linear.y = current_heading2;
-    debug_heading_msg.linear.z = current_heading3;
-    debug_heading_msg.angular.x = current_heading4;
+    debug_heading_msg.linear.x = req_heading.motor1 * RAD_TO_DEG;
+    debug_heading_msg.linear.y = req_heading.motor2 * RAD_TO_DEG;
+    debug_heading_msg.linear.z = req_heading.motor3 * RAD_TO_DEG;
+    debug_heading_msg.angular.x = req_heading.motor4 * RAD_TO_DEG;
+
     servo1_controller.write(current_heading1);
     servo2_controller.write(current_heading2);
     servo3_controller.write(current_heading3);

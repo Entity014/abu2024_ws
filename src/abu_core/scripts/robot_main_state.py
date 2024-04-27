@@ -3,9 +3,11 @@ import rclpy
 import math
 import cv2
 import numpy as np
+import time
 
 from rclpy.node import Node
 from std_msgs.msg import Int8, String, Float32MultiArray, Bool, Int16MultiArray
+from geometry_msgs.msg import Twist
 from rclpy import qos
 
 
@@ -19,6 +21,13 @@ class RobotMainState(Node):
             qos_profile=qos.qos_profile_sensor_data,
         )
         self.sub_state
+        self.sub_move = self.create_subscription(
+            String,
+            "robot/move",
+            self.sub_move_callback,
+            qos_profile=qos.qos_profile_sensor_data,
+        )
+        self.sub_move
         self.sub_goal_state = self.create_subscription(
             Bool,
             "goal/state",
@@ -29,6 +38,9 @@ class RobotMainState(Node):
 
         self.pub_main_state = self.create_publisher(
             Int8, "robot/main", qos_profile=qos.qos_profile_system_default
+        )
+        self.pub_team = self.create_publisher(
+            String, "robot/team", qos_profile=qos.qos_profile_system_default
         )
         self.pub_ip = self.create_publisher(
             Float32MultiArray,
@@ -50,10 +62,15 @@ class RobotMainState(Node):
             "gripper/arm",
             qos_profile=qos.qos_profile_system_default,
         )
+        self.pub_cmd_vel = self.create_publisher(
+            Twist,
+            "cmd_vel",
+            qos_profile=qos.qos_profile_system_default,
+        )
         self.sent_timer = self.create_timer(0.05, self.timer_callback)
 
         self.robot_state = String()
-        self.robot_main_state = 0
+        self.robot_main_state = 3
         self.window_state = "normal"
         self.width, self.height = 1024, 600
         self.blue_color = (255, 250, 132)
@@ -63,6 +80,7 @@ class RobotMainState(Node):
         self.team = "none"
         self.retry = "none"
 
+        self.move = "none"
         self.goal_state = Bool()
         self.__previous_goal_state = Bool()
 
@@ -76,54 +94,97 @@ class RobotMainState(Node):
                 self.robot_main_state += 1
             self.__previous_goal_state = self.goal_state
 
+    def sub_move_callback(self, msgin):
+        self.move = msgin.data
+
     def timer_callback(self):
+        msg_cmd_vel = Twist()
         msg = Int8()
+        msg_team = String()
         msg_gripper_arm = String()
         msg_gripper_hand = Int16MultiArray()
-        if self.robot_state == "IDLE":
-            self.terminal()
-            msg_ip = Float32MultiArray()
-            if self.team == "BLUE":
-                if self.retry == "none":
-                    msg_ip.data = [0.0, 0.0, 0.0]
-                elif self.retry == "RETRY":
-                    msg_ip.data = [5.15, -0.05, 0.0]
-            elif self.team == "RED":
-                if self.retry == "none":
-                    msg_ip.data = [0.0, 10.8, 0.0]
-                elif self.retry == "RETRY":
-                    msg_ip.data = [5.15, 10.9, 0.0]
-            self.pub_ip.publish(msg_ip)
-        elif self.robot_state == "START":
-            cv2.destroyAllWindows()
-            msg_goal = Float32MultiArray()
-            if self.robot_main_state == 0:
-                msg_gripper_arm.data = "BOTTOM"
-                msg_gripper_hand.data = [0, 110]
-                if self.team == "BLUE":
-                    msg_goal.data = [6.5, 0.0, 1.57]
-                elif self.team == "RED":
-                    msg_goal.data = [6.5, 10.9, -1.57]
-            elif self.robot_main_state == 1:
-                if self.team == "BLUE":
-                    msg_goal.data = [6.5, 4.0, 0.0]
-                elif self.team == "RED":
-                    msg_goal.data = [6.5, 6.9, 0.0]
-            elif self.robot_main_state == 2:
-                if self.team == "BLUE":
-                    msg_goal.data = [9.5, 4.0, -1.57]
-                elif self.team == "RED":
-                    msg_goal.data = [9.5, 6.9, 1.57]
-            elif self.robot_main_state == 3:
-                msg_gripper_arm.data = "BOTTOM"
-                msg_gripper_hand.data = [0, 110]
-            self.pub_goal.publish(msg_goal)
-        elif self.robot_state == "RESET":
-            self.robot_main_state = 0
+        # if self.robot_state == "IDLE":
+        #     self.terminal()
+        #     msg_ip = Float32MultiArray()
+        #     msg_gripper_arm.data = "BOTTOM"
+        #     msg_gripper_hand.data = [0, 110]
+        #     if self.team == "BLUE":
+        #         if self.retry == "none":
+        #             msg_ip.data = [0.0, 0.0, 0.0]
+        #         elif self.retry == "RETRY":
+        #             msg_ip.data = [5.15, -0.05, 0.0]
+        #     elif self.team == "RED":
+        #         if self.retry == "none":
+        #             msg_ip.data = [0.0, 10.8, 0.0]
+        #         elif self.retry == "RETRY":
+        #             msg_ip.data = [5.15, 10.9, 0.0]
+        #     self.pub_ip.publish(msg_ip)
+        # elif self.robot_state == "START":
+        #     cv2.destroyAllWindows()
+        #     msg_goal = Float32MultiArray()
+        #     if self.robot_main_state == 0:
+        #         msg_gripper_arm.data = "BOTTOM"
+        #         msg_gripper_hand.data = [0, 110]
+        #         if self.team == "BLUE":
+        #             msg_goal.data = [6.5, 0.0, 1.57]
+        #         elif self.team == "RED":
+        #             msg_goal.data = [6.5, 10.9, -1.57]
+        #     elif self.robot_main_state == 1:
+        #         if self.team == "BLUE":
+        #             msg_goal.data = [6.5, 4.0, 0.0]
+        #         elif self.team == "RED":
+        #             msg_goal.data = [6.5, 6.9, 0.0]
+        #     elif self.robot_main_state == 2:
+        #         if self.team == "BLUE":
+        #             msg_goal.data = [9.5, 4.0, 1.57]
+        #         elif self.team == "RED":
+        #             msg_goal.data = [9.5, 6.9, -1.57]
+        if self.robot_main_state == 3:
+            self.robot_main_state = 4
+        elif self.robot_main_state == 4:
             msg_gripper_arm.data = "BOTTOM"
             msg_gripper_hand.data = [0, 110]
+            if self.move == "LEFT":
+                msg_cmd_vel.angular.z = 0.5
+            elif self.move == "RIGHT":
+                msg_cmd_vel.angular.z = -0.5
+            elif self.move == "CENTER":
+                msg_cmd_vel.angular.z = 0.0
+                self.robot_main_state = 5
+            self.pub_cmd_vel.publish(msg_cmd_vel)
+        elif self.robot_main_state == 5:
+            if self.move != "DONE":
+                msg_cmd_vel.linear.x = -0.8
+            else:
+                msg_cmd_vel.linear.x = 0.0
+                msg_gripper_arm.data = "BOTTOM"
+                msg_gripper_hand.data = [0, 140]
+                self.robot_main_state = 6
+            self.pub_cmd_vel.publish(msg_cmd_vel)
+        # elif self.robot_main_state == 6:
+        #     if self.team == "BLUE":
+        #         msg_goal.data = [9.5, 4.0, 1.57]
+        #     elif self.team == "RED":
+        #         msg_goal.data = [9.5, 6.9, -1.57]
+        # elif self.robot_main_state == 7:
+        #     msg_gripper_arm.data = "TOP"
+        #     msg_gripper_hand.data = [160, 140]
+        #     self.robot_main_state = 8
+        # elif self.robot_main_state == 8:
+        #     msg_gripper_arm.data = "TOP"
+        #     time.sleep(0.5)
+        #     msg_gripper_hand.data = [160, 110]
+        #     self.robot_main_state = 4
+        #     self.pub_goal.publish(msg_goal)
+        # elif self.robot_state == "RESET":
+        #     self.robot_main_state = 0
+        #     msg_gripper_arm.data = "BOTTOM"
+        #     msg_gripper_hand.data = [0, 110]
 
+        self.team = "BLUE"
         msg.data = self.robot_main_state
+        msg_team.data = self.team
+        self.pub_team.publish(msg_team)
         self.pub_main_state.publish(msg)
         self.pub_gripper_arm.publish(msg_gripper_arm)
         self.pub_gripper_hand.publish(msg_gripper_hand)

@@ -6,9 +6,9 @@
 #define SWERVE_DRIVE_ROBOT
 // #define USE_MPU9250_IMU
 
-#define K_P 0.1
-#define K_I 0.03
-#define K_D 0
+#define K_P 1.5
+#define K_I 0.06
+#define K_D 0.02
 
 #define PWM_BITS 10         // PWM Resolution of the microcontroller
 #define PWM_FREQUENCY 20000 // PWM Frequency

@@ -29,11 +29,11 @@ Kinematics::Kinematics(base robot_base, int motor_max_rpm, float max_rpm_ratio,
 Kinematics::velocities_rpm Kinematics::calculateRPMVelocities(float linear_x, float linear_y, float angular_z)
 {
 
-    float tangential_vel = rpm_ratio_ * angular_z * (wheels_y_distance_ / 2.0);
+    float tangential_vel = angular_z * (wheels_y_distance_ / 2.0);
 
     // convert m/s to m/min
-    float linear_vel_x_mins = rpm_ratio_ * linear_x * 60.0;
-    float linear_vel_y_mins = rpm_ratio_ * linear_y * 60.0;
+    float linear_vel_x_mins = linear_x * 60.0;
+    float linear_vel_y_mins = linear_y * 60.0;
     // convert rad/s to rad/min
     float tangential_vel_mins = tangential_vel * 60.0;
 
@@ -125,15 +125,15 @@ Kinematics::velocities Kinematics::calculateVelocities(float rpm1, float rpm2, f
     float average_rps_a;
 
     // convert average revolutions per minute to revolutions per second
-    average_rps_x = ((float)(rpm1 + rpm2 + rpm3 + rpm4) / total_wheels_) / 60.0 / rpm_ratio_; // RPM
-    vel.linear_x = average_rps_x * wheel_circumference_;                                      // m/s
+    average_rps_x = ((float)(rpm1 + rpm2 + rpm3 + rpm4) / total_wheels_) / 60.0; // RPM
+    vel.linear_x = average_rps_x * wheel_circumference_;                         // m/s
 
     // convert average revolutions per minute in y axis to revolutions per second
-    average_rps_y = ((float)(-rpm1 + rpm2 + rpm3 - rpm4) / total_wheels_) / 60.0 / rpm_ratio_; // RPM
-    vel.linear_y = average_rps_y * wheel_circumference_;                                       // m/s
+    average_rps_y = ((float)(-rpm1 + rpm2 + rpm3 - rpm4) / total_wheels_) / 60.0; // RPM
+    vel.linear_y = average_rps_y * wheel_circumference_;                          // m/s
 
     // convert average revolutions per minute to revolutions per second
-    average_rps_a = ((float)(-rpm1 + rpm2 - rpm3 + rpm4) / total_wheels_) / 60.0 / rpm_ratio_;
+    average_rps_a = ((float)(-rpm1 + rpm2 - rpm3 + rpm4) / total_wheels_) / 60.0;
     vel.angular_z = (average_rps_a * wheel_circumference_) / (wheels_y_distance_ / 2.0); //  rad/s
 
     return vel;
