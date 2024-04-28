@@ -9,6 +9,7 @@
 #include <rclc/executor.h>
 
 #include <std_msgs/msg/string.h>
+#include <std_msgs/msg/bool.h>
 #include <std_msgs/msg/int16_multi_array.h>
 #include <geometry_msgs/msg/twist.h>
 
@@ -51,8 +52,10 @@ rcl_publisher_t debug_publisher;
 rcl_publisher_t color_publisher;
 rcl_subscription_t arm_subscriber;
 rcl_subscription_t hand_subscriber;
+rcl_subscription_t motor_subscriber;
 
 geometry_msgs__msg__Twist debug_msg;
+std_msgs__msg__Bool motor_msg;
 std_msgs__msg__String arm_msg;
 std_msgs__msg__Int16MultiArray hand_msg;
 std_msgs__msg__Int16MultiArray color_msg;
@@ -80,9 +83,11 @@ struct rgb_colors
 };
 
 Motor motor1_controller(PWM_FREQUENCY, PWM_BITS, MOTOR1_INV, MOTOR1_PWM, MOTOR1_IN_A, MOTOR1_IN_B);
+Motor motor2_controller(PWM_FREQUENCY, PWM_BITS, MOTOR2_INV, MOTOR2_PWM, MOTOR2_IN_A, MOTOR2_IN_B);
 
 PWMServo servo1_controller;
 PWMServo servo2_controller;
+PWMServo servo3_controller;
 
 //------------------------------ < Fuction Prototype > ------------------------------//
 
@@ -117,8 +122,10 @@ void setup()
 
     servo1_controller.attach(SERVO1);
     servo2_controller.attach(SERVO2);
+    servo2_controller.attach(SERVO3);
     servo1_controller.write(0);
     servo2_controller.write(110);
+    servo3_controller.write(90);
 }
 
 void loop()
@@ -145,6 +152,7 @@ void loop()
     case AGENT_DISCONNECTED:
         servo1_controller.write(0);
         servo2_controller.write(110);
+        servo3_controller.write(90);
         destroyEntities();
         state = WAITING_AGENT;
         break;
@@ -174,6 +182,18 @@ void handCallback(const void *msgin)
 {
     servo1_controller.write(hand_msg.data.data[0]);
     servo2_controller.write(hand_msg.data.data[1]);
+}
+
+void motorCallback(const void *msgin)
+{
+    if (motor_msg.data)
+    {
+        motor2_controller.spin(512);
+    }
+    else
+    {
+        motor2_controller.spin(0);
+    }
 }
 
 bool createEntities()
@@ -223,6 +243,12 @@ bool createEntities()
     hand_msg.data.size = 2;
     hand_msg.data.data = (int16_t *)malloc(hand_msg.data.capacity * sizeof(int16_t));
 
+    RCCHECK(rclc_subscription_init_default(
+        &motor_subscriber,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
+        "gripper/motor"));
+
     // create timer for actuating the motors at 50 Hz (1000/20)
     const unsigned int control_timeout = 20;
     RCCHECK(rclc_timer_init_default(
@@ -232,7 +258,7 @@ bool createEntities()
         controlCallback));
 
     executor = rclc_executor_get_zero_initialized_executor();
-    RCCHECK(rclc_executor_init(&executor, &support.context, 3, &allocator));
+    RCCHECK(rclc_executor_init(&executor, &support.context, 4, &allocator));
     RCCHECK(rclc_executor_add_subscription(
         &executor,
         &arm_subscriber,
@@ -244,6 +270,12 @@ bool createEntities()
         &hand_subscriber,
         &hand_msg,
         &handCallback,
+        ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(
+        &executor,
+        &motor_subscriber,
+        &motor_msg,
+        &motorCallback,
         ON_NEW_DATA));
     RCCHECK(rclc_executor_add_timer(&executor, &control_timer));
 
@@ -261,6 +293,7 @@ bool destroyEntities()
 
     rcl_publisher_fini(&debug_publisher, &node);
     rcl_publisher_fini(&color_publisher, &node);
+    rcl_subscription_fini(&motor_subscriber, &node);
     rcl_subscription_fini(&hand_subscriber, &node);
     rcl_subscription_fini(&arm_subscriber, &node);
     rcl_node_fini(&node);

@@ -15,5 +15,5 @@ sllidar_node:
 
 scan_filter_node:
   ros__parameters:
-    min_angle: -1.25
+    min_angle: -1.25 # 1.25
     max_angle: 1.25

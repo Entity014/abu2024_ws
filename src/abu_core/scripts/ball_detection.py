@@ -7,6 +7,7 @@ import time
 
 from rclpy.node import Node
 from std_msgs.msg import Int8, String
+from sensor_msgs.msg import LaserScan
 from rclpy import qos
 
 
@@ -19,12 +20,18 @@ class BallDetection(Node):
             self.sub_team_callback,
             qos_profile=qos.qos_profile_sensor_data,
         )
-        self.sub_team
+        self.sub_lidar = self.create_subscription(
+            LaserScan,
+            "scan",
+            self.sub_lidar_callback,
+            qos_profile=qos.qos_profile_sensor_data,
+        )
+
         self.pub_color = self.create_publisher(
-            String, "robot/color", qos_profile=qos.qos_profile_system_default
+            String, "color/type", qos_profile=qos.qos_profile_system_default
         )
         self.pub_move = self.create_publisher(
-            String, "robot/move", qos_profile=qos.qos_profile_system_default
+            String, "color/move", qos_profile=qos.qos_profile_system_default
         )
         self.sent_timer = self.create_timer(0.05, self.timer_callback)
 
@@ -44,6 +51,13 @@ class BallDetection(Node):
     def sub_team_callback(self, msgin):
         self.team = msgin.data
 
+    def sub_lidar_callback(self, msgin):
+        self.get_logger().info(f"{self.detect_state}")
+        if msgin.ranges[1799] < 0.4:
+            self.detect_state = 1
+        else:
+            self.detect_state = 0
+
     def timer_callback(self):
         ret, self.frame = self.cap.read()
         self.frame = cv2.flip(self.frame, 0)
@@ -59,8 +73,8 @@ class BallDetection(Node):
                 mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
             )
             self.search_contours(contours)
-            cv2.line(self.frame, (230, 0), (230, 480), (255, 0, 0), 2)
-            cv2.line(self.frame, (280, 0), (280, 480), (255, 0, 0), 2)
+            cv2.line(self.frame, (295, 0), (295, 480), (255, 0, 0), 2)
+            cv2.line(self.frame, (345, 0), (345, 480), (255, 0, 0), 2)
         cv2.imshow("Camera", self.frame)
         cv2.waitKey(1)
 
@@ -77,24 +91,24 @@ class BallDetection(Node):
             self.cx = int(moments["m10"] / moments["m00"])
             self.cy = int(moments["m01"] / moments["m00"])
             if self.detect_state == 0:
-                if self.cx <= 230:
+                if self.cx <= 295:
                     msg_move.data = "LEFT"
                     self.state = 0
-                elif self.cx >= 280:
+                elif self.cx >= 345:
                     msg_move.data = "RIGHT"
                     self.state = 0
                 else:
-                    if self.state == 0:
-                        self.start_time = time.time()
-                        self.state = 1
-                    elif self.state == 1:
-                        elapsed_time = time.time() - self.start_time
-                        if elapsed_time > 1:
-                            msg_move.data = "CENTER"
-                            self.detect_state = 1
-            if area > 230000 and self.detect_state == 1:
+                    msg_move.data = "CENTER"
+                    # if self.state == 0:
+                    #     self.start_time = time.time()
+                    #     self.state = 1
+                    # elif self.state == 1:
+                    #     elapsed_time = time.time() - self.start_time
+                    #     if elapsed_time > 1:
+                    #         msg_move.data = "CENTER"
+                    #         self.detect_state = 1
+            if self.detect_state == 1:
                 msg_move.data = "DONE"
-                self.detect_state = 0
             self.pub_move.publish(msg_move)
             # print(area)
             cv2.circle(

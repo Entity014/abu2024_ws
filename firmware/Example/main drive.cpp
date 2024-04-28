@@ -65,6 +65,7 @@ rcl_publisher_t odom_publisher;
 rcl_publisher_t volt_publisher;
 rcl_publisher_t start_publisher;
 rcl_publisher_t debug_motor_publisher;
+rcl_publisher_t debug_pwm_publisher;
 rcl_publisher_t debug_encoder_publisher;
 rcl_publisher_t debug_heading_publisher;
 // rcl_publisher_t imu_publisher;
@@ -79,6 +80,7 @@ nav_msgs__msg__Odometry odom_msg;
 // sensor_msgs__msg__Imu imu_msg;
 geometry_msgs__msg__Twist twist_msg;
 geometry_msgs__msg__Twist debug_motor_msg;
+geometry_msgs__msg__Twist debug_pwm_msg;
 geometry_msgs__msg__Twist debug_encoder_msg;
 geometry_msgs__msg__Twist debug_heading_msg;
 
@@ -288,6 +290,11 @@ bool createEntities()
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "debug/motor"));
+    RCCHECK(rclc_publisher_init_default(
+        &debug_pwm_publisher,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
+        "debug/pwm"));
 
     RCCHECK(rclc_publisher_init_default(
         &debug_encoder_publisher,
@@ -364,6 +371,7 @@ bool destroyEntities()
     (void)rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0);
 
     rcl_publisher_fini(&debug_motor_publisher, &node);
+    rcl_publisher_fini(&debug_pwm_publisher, &node);
     rcl_publisher_fini(&debug_encoder_publisher, &node);
     rcl_publisher_fini(&debug_heading_publisher, &node);
     rcl_publisher_fini(&start_publisher, &node);
@@ -423,6 +431,10 @@ void moveBase()
     current_rpm3 = round(simpleKalmanFilter.updateEstimate(current_rpm3));
     current_rpm4 = round(simpleKalmanFilter.updateEstimate(current_rpm4));
 
+    debug_pwm_msg.linear.x = motor1_pid.compute(req_rpm.motor1, current_rpm1);
+    debug_pwm_msg.linear.y = motor2_pid.compute(req_rpm.motor2, current_rpm2);
+    debug_pwm_msg.linear.z = motor3_pid.compute(req_rpm.motor3, current_rpm3);
+    debug_pwm_msg.angular.x = motor4_pid.compute(req_rpm.motor4, current_rpm4);
     debug_motor_msg.linear.x = req_rpm.motor1;
     debug_motor_msg.linear.y = req_rpm.motor2;
     debug_motor_msg.linear.z = req_rpm.motor3;
@@ -480,6 +492,7 @@ void publishData()
     RCSOFTCHECK(rcl_publish(&volt_publisher, &volt_msg, NULL));
     RCSOFTCHECK(rcl_publish(&odom_publisher, &odom_msg, NULL));
     RCSOFTCHECK(rcl_publish(&start_publisher, &start_msg, NULL));
+    RCSOFTCHECK(rcl_publish(&debug_pwm_publisher, &debug_pwm_msg, NULL));
     RCSOFTCHECK(rcl_publish(&debug_motor_publisher, &debug_motor_msg, NULL));
     RCSOFTCHECK(rcl_publish(&debug_encoder_publisher, &debug_encoder_msg, NULL));
     RCSOFTCHECK(rcl_publish(&debug_heading_publisher, &debug_heading_msg, NULL));
