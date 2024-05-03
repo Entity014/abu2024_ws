@@ -27,6 +27,6 @@ def generate_launch_description():
     )
     ld.add_action(node_joy)
     ld.add_action(node_joy_drive)
-    ld.add_action(node_microros)
+    # ld.add_action(node_microros)
 
     return ld

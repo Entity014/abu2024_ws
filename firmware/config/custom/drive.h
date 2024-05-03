@@ -14,10 +14,10 @@ ROBOT ORIENTATION
 
 #define USE_PRIK_KEE_NOO_DRIVER
 
-#define RPM_RATIO 1.0
-#define MOTOR_MAX_RPM 5500     // motor's max RPM
-#define MAX_RPM_RATIO 1.0      // max RPM allowed for each MAX_RPM_ALLOWED = MOTOR_MAX_RPM * MAX_RPM_RATIO
-#define WHEEL_DIAMETER 0.0756  // wheel's diameter in meters
-#define LR_WHEELS_DISTANCE 0.6 // distance between left and right wheels
+#define RPM_RATIO 3.0
+#define MOTOR_MAX_RPM 5500      // motor's max RPM
+#define MAX_RPM_RATIO 1.0       // max RPM allowed for each MAX_RPM_ALLOWED = MOTOR_MAX_RPM * MAX_RPM_RATIO
+#define WHEEL_DIAMETER 0.0756   // wheel's diameter in meters
+#define LR_WHEELS_DISTANCE 0.63 // distance between left and right wheels
 
 #endif

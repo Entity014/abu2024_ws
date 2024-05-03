@@ -94,15 +94,15 @@ Kinematics::velocities SwerveDrive::calculateVelocities(SwerveDrive::heading hea
 
     // convert average revolutions per minute to revolutions per second
     average_rps_x = ((float)((rpm1 * cos(heading.motor1)) + (rpm2 * cos(heading.motor2)) + (rpm3 * cos(heading.motor3)) + (rpm4 * cos(heading.motor4))) / total_wheels_) / 60.0; // RPM
-    vel.linear_x = average_rps_x * wheel_circumference_;                                                                                                                         // m/s
+    vel.linear_x = average_rps_x * wheel_circumference_ / rpm_ratio_;                                                                                                            // m/s
 
     // convert average revolutions per minute in y axis to revolutions per second
     average_rps_y = ((float)((rpm1 * sin(heading.motor1)) + (rpm2 * sin(heading.motor2)) + (rpm3 * sin(heading.motor3)) + (rpm4 * sin(heading.motor4))) / total_wheels_) / 60.0; // RPM
-    vel.linear_y = average_rps_y * wheel_circumference_;                                                                                                                         // m/s
+    vel.linear_y = average_rps_y * wheel_circumference_ / rpm_ratio_;                                                                                                            // m/s
 
     // convert average revolutions per minute to revolutions per second
-    average_rps_a = ((float)((rpm1) - (rpm2) + (rpm3) - (rpm4)) / total_wheels_) / 60.0 / 2;
-    vel.angular_z = (average_rps_a * wheel_circumference_) / (wheels_y_distance_ / 2.0); //  rad/s
+    average_rps_a = ((float)((rpm1 * sin(abs(heading.motor1))) - (rpm2 * sin(abs(heading.motor2))) + (rpm3 * sin(abs(heading.motor3))) - (rpm4 * sin(abs(heading.motor4)))) / total_wheels_) / 60.0;
+    vel.angular_z = ((average_rps_a * wheel_circumference_) / (wheels_y_distance_ / 2.0)) / rpm_ratio_; //  rad/s
 
     return vel;
 }

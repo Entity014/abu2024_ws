@@ -66,6 +66,8 @@ class Nav2Control(Node):
             self.send_goal_future = self.cli.send_goal_async(target)
             self.send_goal_future.add_done_callback(self.goal_callback)
             self.__previous_target_goal = goal.data
+        elif len(goal.data) == 5:
+            self.cancel_goal()
 
     def sub_ip_callback(self, initial_pose):
         if initial_pose.data == self.__previous_target_ip:
@@ -116,10 +118,10 @@ class Nav2Control(Node):
         self.navigator.followWaypoints(target_waypoint)
 
     def goal_callback(self, future):
-        res = future.result()
-        if res is None or not res.accepted:
+        self.goal_handle = future.result()
+        if self.goal_handle is None or not self.goal_handle.accepted:
             return
-        future = res.get_result_async()
+        future = self.goal_handle.get_result_async()
         future.add_done_callback(self.goal_result_callback)
 
     def goal_result_callback(self, future):
@@ -134,6 +136,18 @@ class Nav2Control(Node):
             else:
                 return False
         return False
+
+    def cancel_goal(self):
+        self.get_logger().info("Canceling goal")
+        future = self.goal_handle.cancel_goal_async()
+        future.add_done_callback(self.goal_canceled_callback)
+
+    def goal_canceled_callback(self, future):
+        cancel_response = future.result()
+        if len(cancel_response.goals_canceling) > 0:
+            self.get_logger().info("Cancelling of goal complete")
+        else:
+            self.get_logger().warning("Goal failed to cancel")
 
 
 def main():

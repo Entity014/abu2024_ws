@@ -49,16 +49,20 @@
 //------------------------------ < Define > -------------------------------------//
 
 rcl_publisher_t debug_publisher;
-rcl_publisher_t color_publisher;
+rcl_publisher_t limit_publisher;
+// rcl_publisher_t color_publisher;
 rcl_subscription_t arm_subscriber;
 rcl_subscription_t hand_subscriber;
 rcl_subscription_t motor_subscriber;
+rcl_subscription_t state_subscriber;
 
 geometry_msgs__msg__Twist debug_msg;
+geometry_msgs__msg__Twist limit_msg;
 std_msgs__msg__Bool motor_msg;
 std_msgs__msg__String arm_msg;
+std_msgs__msg__String state_msg;
 std_msgs__msg__Int16MultiArray hand_msg;
-std_msgs__msg__Int16MultiArray color_msg;
+// std_msgs__msg__Int16MultiArray color_msg;
 
 rclc_executor_t executor;
 rclc_support_t support;
@@ -88,6 +92,9 @@ Motor motor2_controller(PWM_FREQUENCY, PWM_BITS, MOTOR2_INV, MOTOR2_PWM, MOTOR2_
 PWMServo servo1_controller;
 PWMServo servo2_controller;
 PWMServo servo3_controller;
+
+bool motor_bool;
+int theta[2] = {15, 110};
 
 //------------------------------ < Fuction Prototype > ------------------------------//
 
@@ -122,8 +129,8 @@ void setup()
 
     servo1_controller.attach(SERVO1);
     servo2_controller.attach(SERVO2);
-    servo2_controller.attach(SERVO3);
-    servo1_controller.write(0);
+    servo3_controller.attach(SERVO3);
+    servo1_controller.write(15);
     servo2_controller.write(110);
     servo3_controller.write(90);
 }
@@ -150,7 +157,7 @@ void loop()
         }
         break;
     case AGENT_DISCONNECTED:
-        servo1_controller.write(0);
+        servo1_controller.write(15);
         servo2_controller.write(110);
         servo3_controller.write(90);
         destroyEntities();
@@ -180,19 +187,24 @@ void armCallback(const void *msgin)
 
 void handCallback(const void *msgin)
 {
-    servo1_controller.write(hand_msg.data.data[0]);
-    servo2_controller.write(hand_msg.data.data[1]);
+    theta[0] = hand_msg.data.data[0];
+    theta[1] = hand_msg.data.data[1];
 }
 
 void motorCallback(const void *msgin)
 {
-    if (motor_msg.data)
+    motor_bool = motor_msg.data;
+}
+
+void stateCallback(const void *msgin)
+{
+    if (strcmp(state_msg.data.data, "START") == 0)
     {
-        motor2_controller.spin(512);
+        servo3_controller.write(0);
     }
     else
     {
-        motor2_controller.spin(0);
+        servo3_controller.write(90);
     }
 }
 
@@ -212,16 +224,21 @@ bool createEntities()
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "debug/gripper"));
-
     RCCHECK(rclc_publisher_init_default(
-        &color_publisher,
+        &limit_publisher,
         &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int16MultiArray),
-        "gripper/color"));
+        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
+        "gripper/limit"));
 
-    color_msg.data.capacity = 3;
-    color_msg.data.size = 3;
-    color_msg.data.data = (int16_t *)malloc(color_msg.data.capacity * sizeof(int16_t));
+    // RCCHECK(rclc_publisher_init_default(
+    //     &color_publisher,
+    //     &node,
+    //     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int16MultiArray),
+    //     "gripper/color"));
+
+    // color_msg.data.capacity = 3;
+    // color_msg.data.size = 3;
+    // color_msg.data.data = (int16_t *)malloc(color_msg.data.capacity * sizeof(int16_t));
 
     RCCHECK(rclc_subscription_init_default(
         &arm_subscriber,
@@ -249,6 +266,15 @@ bool createEntities()
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
         "gripper/motor"));
 
+    RCCHECK(rclc_subscription_init_default(
+        &state_subscriber,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+        "robot/state"));
+    state_msg.data.capacity = 10;
+    state_msg.data.size = 10;
+    state_msg.data.data = (char *)malloc(state_msg.data.capacity * sizeof(char));
+
     // create timer for actuating the motors at 50 Hz (1000/20)
     const unsigned int control_timeout = 20;
     RCCHECK(rclc_timer_init_default(
@@ -258,7 +284,7 @@ bool createEntities()
         controlCallback));
 
     executor = rclc_executor_get_zero_initialized_executor();
-    RCCHECK(rclc_executor_init(&executor, &support.context, 4, &allocator));
+    RCCHECK(rclc_executor_init(&executor, &support.context, 5, &allocator));
     RCCHECK(rclc_executor_add_subscription(
         &executor,
         &arm_subscriber,
@@ -277,6 +303,12 @@ bool createEntities()
         &motor_msg,
         &motorCallback,
         ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(
+        &executor,
+        &state_subscriber,
+        &state_msg,
+        &stateCallback,
+        ON_NEW_DATA));
     RCCHECK(rclc_executor_add_timer(&executor, &control_timer));
 
     // synchronize time with the agent
@@ -292,7 +324,8 @@ bool destroyEntities()
     (void)rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0);
 
     rcl_publisher_fini(&debug_publisher, &node);
-    rcl_publisher_fini(&color_publisher, &node);
+    rcl_publisher_fini(&limit_publisher, &node);
+    // rcl_publisher_fini(&color_publisher, &node);
     rcl_subscription_fini(&motor_subscriber, &node);
     rcl_subscription_fini(&hand_subscriber, &node);
     rcl_subscription_fini(&arm_subscriber, &node);
@@ -314,7 +347,7 @@ void commandGripper()
     }
     else if ((!digitalRead(TOP_LIM_SWITCH)) == LOW && strcmp(arm_msg.data.data, "TOP") == 0)
     {
-        motor1_controller.spin(200);
+        motor1_controller.spin(250);
     }
     else if ((!digitalRead(BOTTOM_LIM_SWITCH)) == HIGH && strcmp(arm_msg.data.data, "BOTTOM") == 0)
     {
@@ -322,18 +355,32 @@ void commandGripper()
     }
     else if ((!digitalRead(BOTTOM_LIM_SWITCH)) == LOW && strcmp(arm_msg.data.data, "BOTTOM") == 0)
     {
-        motor1_controller.spin(-150);
+        motor1_controller.spin(-100);
     }
 
-    rgb_colors rgb;
-    rgb = GetColors();
-    color_msg.data.data[0] = rgb.r; // Example value
-    color_msg.data.data[1] = rgb.g; // Example value
-    color_msg.data.data[2] = rgb.b; // Example value
+    servo1_controller.write(theta[0]);
+    servo2_controller.write(theta[1]);
+
+    if (motor_bool)
+    {
+        motor2_controller.spin(512);
+    }
+    else
+    {
+        motor2_controller.spin(0);
+    }
+
+    // rgb_colors rgb;
+    // rgb = GetColors();
+    // color_msg.data.data[0] = rgb.r; // Example value
+    // color_msg.data.data[1] = rgb.g; // Example value
+    // color_msg.data.data[2] = rgb.b; // Example value
 
     debug_msg.linear.x = 0.0;
     debug_msg.linear.y = !digitalRead(TOP_LIM_SWITCH);
     debug_msg.linear.z = !digitalRead(BOTTOM_LIM_SWITCH);
+    limit_msg.linear.x = !digitalRead(TOP_LIM_SWITCH);
+    limit_msg.linear.y = !digitalRead(BOTTOM_LIM_SWITCH);
 }
 
 void publishData()
@@ -341,7 +388,8 @@ void publishData()
     struct timespec time_stamp = getTime();
 
     RCSOFTCHECK(rcl_publish(&debug_publisher, &debug_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&color_publisher, &color_msg, NULL));
+    RCSOFTCHECK(rcl_publish(&limit_publisher, &limit_msg, NULL));
+    // RCSOFTCHECK(rcl_publish(&color_publisher, &color_msg, NULL));
 }
 
 void syncTime()

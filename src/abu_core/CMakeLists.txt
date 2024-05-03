@@ -20,7 +20,7 @@ find_package(ament_cmake REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(OpenCV REQUIRED)
+# find_package(OpenCV REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
@@ -58,19 +58,19 @@ ament_target_dependencies(tb3_autonomy rclcpp behaviortree_cpp_v3 rclcpp_action 
 
 add_executable(pub src/pub.cpp)
 add_executable(joy_drive src/joy_drive.cpp)
-add_executable(detection src/detection.cpp)
+# add_executable(detection src/detection.cpp)
 add_executable(autonomy_node src/autonomy_node.cpp)
 target_link_libraries(joy_drive RobotControl)
 target_link_libraries(autonomy_node tb3_autonomy ${YAML_CPP_LIBRARIES})
 ament_target_dependencies(pub rclcpp std_msgs)
 ament_target_dependencies(autonomy_node)
 ament_target_dependencies(joy_drive rclcpp sensor_msgs geometry_msgs)
-ament_target_dependencies(detection rclcpp sensor_msgs geometry_msgs OpenCV cv_bridge)
+# ament_target_dependencies(detection rclcpp sensor_msgs geometry_msgs OpenCV cv_bridge)
 
 install(TARGETS
   pub
   joy_drive
-  detection
+  # detection
   autonomy_node
   DESTINATION lib/${PROJECT_NAME}
 )

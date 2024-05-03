@@ -139,6 +139,11 @@ WCS WCS1 = WCS(0, _WCS1700);
 
 SimpleKalmanFilter simpleKalmanFilter(2, 2, 0.01);
 
+float now_heading1 = 90;
+float now_heading2 = 90;
+float now_heading3 = 90;
+float now_heading4 = 90;
+
 //------------------------------ < Fuction Prototype > ------------------------------//
 
 void flashLED(int n_times);
@@ -431,10 +436,6 @@ void moveBase()
     current_rpm3 = round(simpleKalmanFilter.updateEstimate(current_rpm3));
     current_rpm4 = round(simpleKalmanFilter.updateEstimate(current_rpm4));
 
-    debug_pwm_msg.linear.x = motor1_pid.compute(req_rpm.motor1, current_rpm1);
-    debug_pwm_msg.linear.y = motor2_pid.compute(req_rpm.motor2, current_rpm2);
-    debug_pwm_msg.linear.z = motor3_pid.compute(req_rpm.motor3, current_rpm3);
-    debug_pwm_msg.angular.x = motor4_pid.compute(req_rpm.motor4, current_rpm4);
     debug_motor_msg.linear.x = req_rpm.motor1;
     debug_motor_msg.linear.y = req_rpm.motor2;
     debug_motor_msg.linear.z = req_rpm.motor3;
@@ -443,19 +444,77 @@ void moveBase()
     debug_encoder_msg.linear.y = current_rpm2;
     debug_encoder_msg.linear.z = current_rpm3;
     debug_encoder_msg.angular.x = current_rpm4;
-    debug_heading_msg.linear.x = req_heading.motor1 * RAD_TO_DEG;
-    debug_heading_msg.linear.y = req_heading.motor2 * RAD_TO_DEG;
-    debug_heading_msg.linear.z = req_heading.motor3 * RAD_TO_DEG;
-    debug_heading_msg.angular.x = req_heading.motor4 * RAD_TO_DEG;
+
+    if (now_heading1 < round(current_heading1))
+    {
+        now_heading1 += map(abs(now_heading1 - current_heading1), 0, 140, 0, 20);
+    }
+    else if (now_heading1 > round(current_heading1))
+    {
+        now_heading1 -= map(abs(now_heading1 - current_heading1), 0, 140, 0, 20);
+    }
+
+    if (now_heading2 < round(current_heading2))
+    {
+        now_heading2 += map(abs(now_heading2 - current_heading2), 0, 140, 0, 20);
+    }
+    else if (now_heading2 > round(current_heading2))
+    {
+        now_heading2 -= map(abs(now_heading2 - current_heading2), 0, 140, 0, 20);
+    }
+
+    if (now_heading3 < round(current_heading3))
+    {
+        now_heading3 += map(abs(now_heading3 - current_heading3), 0, 140, 0, 20);
+    }
+    else if (now_heading3 > round(current_heading3))
+    {
+        now_heading3 -= map(abs(now_heading3 - current_heading3), 0, 140, 0, 20);
+    }
+
+    if (now_heading4 < round(current_heading4))
+    {
+        now_heading4 += map(abs(now_heading4 - current_heading4), 0, 140, 0, 20);
+    }
+    else if (now_heading4 > round(current_heading4))
+    {
+        now_heading4 -= map(abs(now_heading4 - current_heading4), 0, 140, 0, 20);
+    }
 
     servo1_controller.write(current_heading1);
     servo2_controller.write(current_heading2);
     servo3_controller.write(current_heading3);
     servo4_controller.write(current_heading4);
-    motor1_controller.spin(motor1_pid.compute(req_rpm.motor1, current_rpm1));
-    motor2_controller.spin(motor2_pid.compute(req_rpm.motor2, current_rpm2));
-    motor3_controller.spin(motor3_pid.compute(req_rpm.motor3, current_rpm3));
-    motor4_controller.spin(motor4_pid.compute(req_rpm.motor4, current_rpm4));
+
+    debug_heading_msg.linear.x = round(now_heading1);
+    debug_heading_msg.linear.y = round(now_heading2);
+    debug_heading_msg.linear.z = round(now_heading3);
+    debug_heading_msg.angular.x = round(now_heading4);
+    // debug_heading_msg.linear.x = req_heading.motor1 * RAD_TO_DEG;
+    // debug_heading_msg.linear.y = req_heading.motor2 * RAD_TO_DEG;
+    // debug_heading_msg.linear.z = req_heading.motor3 * RAD_TO_DEG;
+    // debug_heading_msg.angular.x = req_heading.motor4 * RAD_TO_DEG;
+
+    if (round(now_heading1) == round(current_heading1))
+    {
+        debug_pwm_msg.linear.x = motor1_pid.compute(req_rpm.motor1, current_rpm1);
+        motor1_controller.spin(motor1_pid.compute(req_rpm.motor1, current_rpm1));
+    }
+    if (round(now_heading2) == round(current_heading2))
+    {
+        debug_pwm_msg.linear.y = motor2_pid.compute(req_rpm.motor2, current_rpm2);
+        motor2_controller.spin(motor2_pid.compute(req_rpm.motor2, current_rpm2));
+    }
+    if (round(now_heading3) == round(current_heading3))
+    {
+        debug_pwm_msg.linear.z = motor3_pid.compute(req_rpm.motor3, current_rpm3);
+        motor3_controller.spin(motor3_pid.compute(req_rpm.motor3, current_rpm3));
+    }
+    if (round(now_heading4) == round(current_heading4))
+    {
+        debug_pwm_msg.angular.x = motor4_pid.compute(req_rpm.motor4, current_rpm4);
+        motor4_controller.spin(motor4_pid.compute(req_rpm.motor4, current_rpm4));
+    }
 
     Kinematics::velocities current_vel = kinematics.getVelocities(
         req_heading,
