@@ -32,6 +32,14 @@ def generate_launch_description():
         [FindPackageShare("nav2_bringup"), "launch", "bringup_launch.py"]
     )
 
+    silo_launch_path = PathJoinSubstitution(
+        [FindPackageShare("abu_core"), "launch", "silo.launch.py"]
+    )
+
+    launch_silo = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(silo_launch_path),
+    )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -74,5 +82,6 @@ def generate_launch_description():
                 }.items(),
             ),
             nav2_control_node,
+            launch_silo,
         ]
     )

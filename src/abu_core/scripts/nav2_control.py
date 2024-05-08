@@ -92,7 +92,7 @@ class Nav2Control(Node):
             initial_pose.pose.pose.orientation.y,
             initial_pose.pose.pose.orientation.z,
             initial_pose.pose.pose.orientation.w,
-        ) = quaternion_from_euler(0, 0, math.radians(yaw))
+        ) = quaternion_from_euler(0, 0, yaw)
 
         return initial_pose
 
@@ -108,7 +108,7 @@ class Nav2Control(Node):
             goal_pose.pose.pose.orientation.y,
             goal_pose.pose.pose.orientation.z,
             goal_pose.pose.pose.orientation.w,
-        ) = quaternion_from_euler(0, 0, math.radians(yaw))
+        ) = quaternion_from_euler(0, 0, yaw)
         return goal_pose
 
     def waypoint(self, pos_waypoint):

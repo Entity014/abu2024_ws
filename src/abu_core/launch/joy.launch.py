@@ -29,4 +29,6 @@ def generate_launch_description():
     ld.add_action(node_joy_drive)
     # ld.add_action(node_microros)
 
+    os.system("gnome-terminal -e 'bash -c \"ros2 launch abu_core microros.launch.py\"'")
+
     return ld

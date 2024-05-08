@@ -10,6 +10,7 @@
 
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/bool.h>
+#include <std_msgs/msg/int8.h>
 #include <std_msgs/msg/int16_multi_array.h>
 #include <geometry_msgs/msg/twist.h>
 
@@ -55,12 +56,14 @@ rcl_subscription_t arm_subscriber;
 rcl_subscription_t hand_subscriber;
 rcl_subscription_t motor_subscriber;
 rcl_subscription_t state_subscriber;
+rcl_subscription_t main_subscriber;
 
 geometry_msgs__msg__Twist debug_msg;
 geometry_msgs__msg__Twist limit_msg;
 std_msgs__msg__Bool motor_msg;
 std_msgs__msg__String arm_msg;
 std_msgs__msg__String state_msg;
+std_msgs__msg__Int8 main_msg;
 std_msgs__msg__Int16MultiArray hand_msg;
 // std_msgs__msg__Int16MultiArray color_msg;
 
@@ -69,6 +72,7 @@ rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
 rcl_timer_t control_timer;
+rcl_timer_t rgb_timer;
 rcl_init_options_t init_options;
 
 unsigned long long time_offset = 0;
@@ -118,14 +122,6 @@ void setup()
     set_microros_serial_transports(Serial);
     pinMode(TOP_LIM_SWITCH, INPUT_PULLUP);
     pinMode(BOTTOM_LIM_SWITCH, INPUT_PULLUP);
-    pinMode(COLOR_S0, OUTPUT);
-    pinMode(COLOR_S1, OUTPUT);
-    pinMode(COLOR_S2, OUTPUT);
-    pinMode(COLOR_S3, OUTPUT);
-    pinMode(COLOR_OUT, INPUT);
-
-    digitalWrite(COLOR_S0, HIGH);
-    digitalWrite(COLOR_S1, HIGH);
 
     servo1_controller.attach(SERVO1);
     servo2_controller.attach(SERVO2);
@@ -180,6 +176,26 @@ void controlCallback(rcl_timer_t *timer, int64_t last_call_time)
     }
 }
 
+void rgbCallback(rcl_timer_t *timer, int64_t last_call_time)
+{
+    RCLC_UNUSED(last_call_time);
+    if (timer != NULL)
+    {
+        if (strcmp(state_msg.data.data, "IDLE") == 0)
+        {
+        }
+        else if (strcmp(state_msg.data.data, "START") == 0)
+        {
+        }
+        else if (strcmp(state_msg.data.data, "RESET") == 0)
+        {
+        }
+        else
+        {
+        }
+    }
+}
+
 void armCallback(const void *msgin)
 {
     digitalWrite(LED_PIN, !digitalRead(LED_PIN));
@@ -206,6 +222,10 @@ void stateCallback(const void *msgin)
     {
         servo3_controller.write(90);
     }
+}
+
+void mainCallback(const void *msgin)
+{
 }
 
 bool createEntities()
@@ -275,6 +295,12 @@ bool createEntities()
     state_msg.data.size = 10;
     state_msg.data.data = (char *)malloc(state_msg.data.capacity * sizeof(char));
 
+    RCCHECK(rclc_subscription_init_default(
+        &main_subscriber,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int8),
+        "robot/main"));
+
     // create timer for actuating the motors at 50 Hz (1000/20)
     const unsigned int control_timeout = 20;
     RCCHECK(rclc_timer_init_default(
@@ -282,9 +308,14 @@ bool createEntities()
         &support,
         RCL_MS_TO_NS(control_timeout),
         controlCallback));
+    RCCHECK(rclc_timer_init_default(
+        &rgb_timer,
+        &support,
+        RCL_MS_TO_NS(control_timeout),
+        rgbCallback));
 
     executor = rclc_executor_get_zero_initialized_executor();
-    RCCHECK(rclc_executor_init(&executor, &support.context, 5, &allocator));
+    RCCHECK(rclc_executor_init(&executor, &support.context, 7, &allocator));
     RCCHECK(rclc_executor_add_subscription(
         &executor,
         &arm_subscriber,
@@ -309,7 +340,14 @@ bool createEntities()
         &state_msg,
         &stateCallback,
         ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(
+        &executor,
+        &main_subscriber,
+        &main_msg,
+        &mainCallback,
+        ON_NEW_DATA));
     RCCHECK(rclc_executor_add_timer(&executor, &control_timer));
+    RCCHECK(rclc_executor_add_timer(&executor, &rgb_timer));
 
     // synchronize time with the agent
     syncTime();
@@ -331,6 +369,7 @@ bool destroyEntities()
     rcl_subscription_fini(&arm_subscriber, &node);
     rcl_node_fini(&node);
     rcl_timer_fini(&control_timer);
+    rcl_timer_fini(&rgb_timer);
     rclc_executor_fini(&executor);
     rclc_support_fini(&support);
 
@@ -432,17 +471,4 @@ void flashLED(int n_times)
         delay(150);
     }
     delay(1000);
-}
-
-rgb_colors GetColors()
-{
-    rgb_colors rgb;
-    digitalWrite(COLOR_S2, LOW);
-    digitalWrite(COLOR_S3, LOW);
-    rgb.r = pulseIn(COLOR_OUT, digitalRead(COLOR_OUT) == HIGH ? LOW : HIGH);
-    digitalWrite(COLOR_S3, HIGH);
-    rgb.b = pulseIn(COLOR_OUT, digitalRead(COLOR_OUT) == HIGH ? LOW : HIGH);
-    digitalWrite(COLOR_S2, HIGH);
-    rgb.g = pulseIn(COLOR_OUT, digitalRead(COLOR_OUT) == HIGH ? LOW : HIGH);
-    return rgb;
 }

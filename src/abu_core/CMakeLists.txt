@@ -82,6 +82,8 @@ install(PROGRAMS
   scripts/nav2_control.py
   scripts/ball_detection.py
   scripts/robot_main_state.py
+  scripts/silo_broadcaster.py
+  scripts/silo_listener.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -21,10 +21,6 @@
 #define TOP_LIM_SWITCH 17
 #define BOTTOM_LIM_SWITCH 16
 
-#define COLOR_OUT 36
-#define COLOR_S0 37
-#define COLOR_S1 38
-#define COLOR_S2 39
-#define COLOR_S3 40
+#define RGB_LED 36
 
 #endif

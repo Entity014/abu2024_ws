@@ -70,12 +70,10 @@ rcl_publisher_t debug_encoder_publisher;
 rcl_publisher_t debug_heading_publisher;
 // rcl_publisher_t imu_publisher;
 rcl_subscription_t twist_subscriber;
-rcl_subscription_t state_subscriber;
 
 std_msgs__msg__Int8 start_msg;
 std_msgs__msg__Float32 amp_msg;
 std_msgs__msg__Float32 volt_msg;
-std_msgs__msg__String state_msg;
 nav_msgs__msg__Odometry odom_msg;
 // sensor_msgs__msg__Imu imu_msg;
 geometry_msgs__msg__Twist twist_msg;
@@ -88,7 +86,6 @@ rclc_executor_t executor;
 rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
-rcl_timer_t rgb_timer;
 rcl_timer_t control_timer;
 rcl_init_options_t init_options;
 
@@ -237,23 +234,11 @@ void controlCallback(rcl_timer_t *timer, int64_t last_call_time)
     }
 }
 
-void rgbCallback(rcl_timer_t *timer, int64_t last_call_time)
-{
-    RCLC_UNUSED(last_call_time);
-    if (timer != NULL)
-    {
-    }
-}
-
 void twistCallback(const void *msgin)
 {
     digitalWrite(LED_PIN, !digitalRead(LED_PIN));
 
     prev_cmd_time = millis();
-}
-
-void stateCallback(const void *msgin)
-{
 }
 
 bool createEntities()
@@ -325,15 +310,7 @@ bool createEntities()
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "cmd_vel"));
-    RCCHECK(rclc_subscription_init_default(
-        &state_subscriber,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-        "robot/state"));
 
-    state_msg.data.capacity = 10;
-    state_msg.data.size = 10;
-    state_msg.data.data = (char *)malloc(state_msg.data.capacity * sizeof(char));
     // create timer for actuating the motors at 50 Hz (1000/20)
     const unsigned int control_timeout = 20;
     RCCHECK(rclc_timer_init_default(
@@ -341,26 +318,14 @@ bool createEntities()
         &support,
         RCL_MS_TO_NS(control_timeout),
         controlCallback));
-    RCCHECK(rclc_timer_init_default(
-        &rgb_timer,
-        &support,
-        RCL_MS_TO_NS(20),
-        rgbCallback));
     executor = rclc_executor_get_zero_initialized_executor();
-    RCCHECK(rclc_executor_init(&executor, &support.context, 4, &allocator));
+    RCCHECK(rclc_executor_init(&executor, &support.context, 2, &allocator));
     RCCHECK(rclc_executor_add_subscription(
         &executor,
         &twist_subscriber,
         &twist_msg,
         &twistCallback,
         ON_NEW_DATA));
-    RCCHECK(rclc_executor_add_subscription(
-        &executor,
-        &state_subscriber,
-        &state_msg,
-        &stateCallback,
-        ON_NEW_DATA));
-    RCCHECK(rclc_executor_add_timer(&executor, &rgb_timer));
     RCCHECK(rclc_executor_add_timer(&executor, &control_timer));
 
     // synchronize time with the agent
@@ -384,7 +349,6 @@ bool destroyEntities()
     rcl_publisher_fini(&volt_publisher, &node);
     rcl_publisher_fini(&amp_publisher, &node);
     // rcl_publisher_fini(&imu_publisher, &node);
-    rcl_subscription_fini(&state_subscriber, &node);
     rcl_subscription_fini(&twist_subscriber, &node);
     rcl_node_fini(&node);
     rcl_timer_fini(&control_timer);
