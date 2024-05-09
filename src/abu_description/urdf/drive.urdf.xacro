@@ -1,10 +1,9 @@
-<?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
     <xacro:macro name="drive_controller">
         <gazebo>
             <plugin name="object_controller" filename="libgazebo_ros_planar_move.so">
             <ros>
-                <argument>odom:=odom/unfiltered</argument>
+                <remapping>odom:=odom/unfiltered</remapping>
             </ros>
             <command_topic>cmd_vel</command_topic>
             <odometry_topic>odom/unfiltered</odometry_topic>
@@ -13,7 +12,6 @@
             <robot_base_frame>base_footprint</robot_base_frame>
             <publish_odom>true</publish_odom>
             <publish_odom_tf>false</publish_odom_tf>
-
             </plugin>
         </gazebo>
     </xacro:macro>

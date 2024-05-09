@@ -28,7 +28,7 @@ def generate_launch_description():
     )
 
     world_path = PathJoinSubstitution(
-        [FindPackageShare("abu_description"), "worlds", "abu2024_ball_blue.world"]
+        [FindPackageShare("abu_description"), "worlds", "abu2024_no_model.world"]
     )
 
     node_lidar_filter = Node(
@@ -116,9 +116,9 @@ def generate_launch_description():
                 parameters=[{"use_sim_time": use_sim_time}, ekf_config_path],
                 remappings=[("odometry/filtered", "odom")],
             ),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(rtabmap_launch_path),
-                condition=IfCondition(LaunchConfiguration("rtabmap")),
-            ),
+            # IncludeLaunchDescription(
+            #     PythonLaunchDescriptionSource(rtabmap_launch_path),
+            #     condition=IfCondition(LaunchConfiguration("rtabmap")),
+            # ),
         ]
     )

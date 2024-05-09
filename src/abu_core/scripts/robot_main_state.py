@@ -110,7 +110,7 @@ class RobotMainState(Node):
         self.top_limit = 0
         self.bottom_limit = 0
 
-        self.robot_main_state = 0
+        self.robot_main_state = 3
         self.gripper_state = 0
         self.ball_type = 0
         self.silo_state = 0
@@ -223,10 +223,10 @@ class RobotMainState(Node):
                     msg_cmd_vel.angular.z = 0.0
                     # time.sleep(0.5)
                     self.ball_type = 0
-                    self.robot_main_state = 4
+                    self.robot_main_state = 10  # TODO: Edit here
                 elif self.move == "FAIL":
                     self.ball_type = 1
-                    self.robot_main_state = 4
+                    self.robot_main_state = 10  # TODO: Edit here
 
                 self.pub_cmd_vel.publish(msg_cmd_vel)
                 self.pub_gripper_arm.publish(msg_gripper_arm)

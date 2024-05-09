@@ -22,5 +22,6 @@
 #define BOTTOM_LIM_SWITCH 16
 
 #define RGB_LED 36
+#define NUMLENS 77
 
 #endif

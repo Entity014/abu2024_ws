@@ -2,6 +2,7 @@
 #include <micro_ros_platformio.h>
 #include <stdio.h>
 #include <PWMServo.h>
+#include <Adafruit_NeoPixel.h>
 
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
@@ -97,8 +98,12 @@ PWMServo servo1_controller;
 PWMServo servo2_controller;
 PWMServo servo3_controller;
 
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMLENS, RGB_LED, NEO_GRB + NEO_KHZ800);
+
 bool motor_bool;
 int theta[2] = {15, 110};
+
+uint16_t i;
 
 //------------------------------ < Fuction Prototype > ------------------------------//
 
@@ -107,6 +112,8 @@ void rclErrorLoop();
 void syncTime();
 void commandGripper();
 void publishData();
+void rgbLED();
+void flash_rgbLED();
 bool createEntities();
 bool destroyEntities();
 rgb_colors GetColors();
@@ -129,6 +136,9 @@ void setup()
     servo1_controller.write(15);
     servo2_controller.write(110);
     servo3_controller.write(90);
+
+    strip.begin();
+    strip.setBrightness(80); // 1/3 brightness
 }
 
 void loop()
@@ -183,15 +193,19 @@ void rgbCallback(rcl_timer_t *timer, int64_t last_call_time)
     {
         if (strcmp(state_msg.data.data, "IDLE") == 0)
         {
+            flash_rgbLED();
         }
         else if (strcmp(state_msg.data.data, "START") == 0)
         {
+            rgbLED();
         }
         else if (strcmp(state_msg.data.data, "RESET") == 0)
         {
+            flash_rgbLED();
         }
         else
         {
+            rgbLED();
         }
     }
 }
@@ -311,7 +325,7 @@ bool createEntities()
     RCCHECK(rclc_timer_init_default(
         &rgb_timer,
         &support,
-        RCL_MS_TO_NS(control_timeout),
+        RCL_MS_TO_NS(20),
         rgbCallback));
 
     executor = rclc_executor_get_zero_initialized_executor();
@@ -471,4 +485,57 @@ void flashLED(int n_times)
         delay(150);
     }
     delay(1000);
+}
+
+uint32_t colorType()
+{
+    if (strcmp(state_msg.data.data, "IDLE") == 0)
+    {
+        return strip.Color(230, 3, 255);
+    }
+    else if (strcmp(state_msg.data.data, "START") == 0)
+    {
+        return strip.Color(230, 3, 255);
+    }
+    else if (strcmp(state_msg.data.data, "RESET") == 0)
+    {
+        return strip.Color(255, 3, 3);
+    }
+    else
+    {
+        return strip.Color(255, 209, 3);
+    }
+}
+
+void rgbLED()
+{
+    if (i < strip.numPixels())
+    {
+        strip.setPixelColor(i, colorType());
+
+        strip.show();
+
+        i++;
+    }
+    else if (i == strip.numPixels())
+    {
+        i = 0;
+    }
+}
+
+void flash_rgbLED()
+{
+    if (i < strip.numPixels())
+    {
+        strip.setPixelColor(i, colorType());
+
+        strip.show();
+
+        i++;
+    }
+    else if (i == strip.numPixels())
+    {
+        strip.clear();
+        i = 0;
+    }
 }

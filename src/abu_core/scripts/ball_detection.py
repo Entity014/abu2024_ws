@@ -35,12 +35,11 @@ class BallDetection(Node):
         )
         self.sent_timer = self.create_timer(0.05, self.timer_callback)
 
-        # self.cap = cv2.VideoCapture("/dev/video6")
-        self.cap = cv2.VideoCapture("/dev/video14")
+        self.cap = cv2.VideoCapture("/dev/video4")
         self.frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        self.r_low = np.array([120, 25, 25])
-        self.r_up = np.array([175, 255, 175])
-        self.b_low = np.array([0, 188, 60])
+        self.r_low = np.array([155, 0, 0])
+        self.r_up = np.array([179, 255, 255])
+        self.b_low = np.array([0, 160, 60])
         self.b_up = np.array([125, 255, 255])
         self.team = "none"
         self.cx, self.cy = (0, 0)
