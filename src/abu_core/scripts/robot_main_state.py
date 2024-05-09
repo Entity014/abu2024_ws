@@ -30,7 +30,7 @@ class RobotMainState(Node):
         )
         self.sub_move
         self.sub_color_found = self.create_subscription(
-            String,
+            Bool,
             "color/found",
             self.sub_color_found_callback,
             qos_profile=qos.qos_profile_sensor_data,
