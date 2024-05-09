@@ -191,6 +191,8 @@ void rgbCallback(rcl_timer_t *timer, int64_t last_call_time)
     RCLC_UNUSED(last_call_time);
     if (timer != NULL)
     {
+        // strip.clear();
+        // strip.show();
         if (strcmp(state_msg.data.data, "IDLE") == 0)
         {
             flash_rgbLED();

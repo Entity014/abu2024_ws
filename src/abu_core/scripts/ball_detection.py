@@ -6,7 +6,7 @@ import numpy as np
 import time
 
 from rclpy.node import Node
-from std_msgs.msg import Int8, String
+from std_msgs.msg import Int8, String, Bool
 from sensor_msgs.msg import LaserScan
 from rclpy import qos
 
@@ -28,7 +28,7 @@ class BallDetection(Node):
         )
 
         self.pub_color = self.create_publisher(
-            String, "color/type", qos_profile=qos.qos_profile_system_default
+            Bool, "color/found", qos_profile=qos.qos_profile_system_default
         )
         self.pub_move = self.create_publisher(
             String, "color/move", qos_profile=qos.qos_profile_system_default
@@ -37,9 +37,9 @@ class BallDetection(Node):
 
         self.cap = cv2.VideoCapture("/dev/video4")
         self.frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        self.r_low = np.array([155, 0, 0])
+        self.r_low = np.array([160, 110, 0])
         self.r_up = np.array([179, 255, 255])
-        self.b_low = np.array([0, 160, 60])
+        self.b_low = np.array([80, 100, 180])
         self.b_up = np.array([125, 255, 255])
         self.team = "none"
         self.cx, self.cy = (0, 0)
@@ -47,6 +47,7 @@ class BallDetection(Node):
         self.start_time = None
         self.state = 0
         self.detect_state = 0
+        self.found = False
 
     def sub_team_callback(self, msgin):
         self.team = msgin.data
@@ -74,22 +75,23 @@ class BallDetection(Node):
             self.search_contours(contours)
             if self.detect_state == 1:
                 msg_move = String()
-                B = self.frame[
-                    round(self.frame.shape[0] / 2), round(self.frame.shape[1] / 2)
-                ][0]
-                G = self.frame[
-                    round(self.frame.shape[0] / 2), round(self.frame.shape[1] / 2)
-                ][1]
-                R = self.frame[
-                    round(self.frame.shape[0] / 2), round(self.frame.shape[1] / 2)
-                ][2]
+                # B = self.frame[
+                #     round(self.frame.shape[0] / 2), round(self.frame.shape[1] / 2)
+                # ][0]
+                # G = self.frame[
+                #     round(self.frame.shape[0] / 2), round(self.frame.shape[1] / 2)
+                # ][1]
+                # R = self.frame[
+                #     round(self.frame.shape[0] / 2), round(self.frame.shape[1] / 2)
+                # ][2]
                 if self.team == "BLUE":
-                    if B >= 240 and (abs(int(R) - int(G)) >= 30):
+                    # if B >= 240 and (abs(int(R) - int(G)) >= 30):
+                    if self.found:
                         msg_move.data = "DONE"
                     else:
                         msg_move.data = "FAIL"
                 elif self.team == "RED":
-                    if R >= 200:
+                    if self.found:
                         msg_move.data = "DONE"
                     else:
                         msg_move.data = "FAIL"
@@ -101,6 +103,7 @@ class BallDetection(Node):
 
     def search_contours(self, contours):
         msg_move = String()
+        msg_found = Bool()
         # for contour in contours:
         if len(contours) != 0:
             largest_contour = max(contours, key=cv2.contourArea)
@@ -109,6 +112,7 @@ class BallDetection(Node):
             epsilon = 0.005 * cv2.arcLength(largest_contour, True)
             approx = cv2.approxPolyDP(largest_contour, epsilon, True)
             if len(approx) >= 10:
+                self.found = True
                 moments = cv2.moments(largest_contour)
                 if moments["m00"] != 0:
                     self.cx = int(moments["m10"] / moments["m00"])
@@ -145,6 +149,10 @@ class BallDetection(Node):
                         cv2.LINE_AA,
                     )
                     cv2.drawContours(self.frame, [approx], -1, (0, 255, 0), 2)
+        else:
+            self.found = False
+        msg_found.data = self.found
+        self.pub_color.publish(msg_found)
 
 
 def main():
