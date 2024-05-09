@@ -127,7 +127,7 @@ class RobotMainState(Node):
         self.bottom_limit = 0
 
         self.color_state = 0
-        self.robot_main_state = 3
+        self.robot_main_state = 4
         self.gripper_state = 0
         self.ball_type = 0
         self.silo_state = 0
