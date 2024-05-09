@@ -257,9 +257,9 @@ class RobotMainState(Node):
                         msg_cmd_vel.angular.z = 0.0
                 else:
                     if self.color_state == 0:
-                        msg_cmd_vel.linear.y = 0.4
+                        msg_cmd_vel.linear.y = 0.2
                     elif self.color_state == 1:
-                        msg_cmd_vel.linear.y = -0.4
+                        msg_cmd_vel.linear.y = -0.2
 
                 if self.move == "DONE":
                     msg_cmd_vel.linear.x = 0.0
