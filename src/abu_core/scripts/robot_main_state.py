@@ -177,9 +177,9 @@ class RobotMainState(Node):
 
     def sub_lidar_callback(self, msgin):
         self.get_logger().info(f"{self.color_state}")
-        if msgin.ranges[352] > 0.5:
+        if msgin.ranges[352] < 0.5:
             self.color_state = 0
-        elif msgin.ranges[1443] > 0.5:
+        elif msgin.ranges[1443] < 0.5:
             self.color_state = 1
 
     def timer_callback(self):
