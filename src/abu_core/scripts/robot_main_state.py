@@ -355,7 +355,7 @@ class RobotMainState(Node):
                         self.robot_main_state = 2
 
         elif self.robot_state == "RESET":
-            self.robot_main_state = 0
+            self.robot_main_state = 4
             self.gripper_state = 0
             self.ball_type = 0
             msg_gripper_arm.data = "BOTTOM"
