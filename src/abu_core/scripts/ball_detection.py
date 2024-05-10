@@ -96,8 +96,8 @@ class BallDetection(Node):
                     else:
                         msg_move.data = "FAIL"
                 self.pub_move.publish(msg_move)
-            cv2.line(self.frame, (295, 0), (295, 480), (255, 0, 0), 2)
-            cv2.line(self.frame, (345, 0), (345, 480), (255, 0, 0), 2)
+            cv2.line(self.frame, (285, 0), (285, 480), (255, 0, 0), 2)
+            cv2.line(self.frame, (355, 0), (355, 480), (255, 0, 0), 2)
         cv2.imshow("Camera", self.frame)
         cv2.waitKey(1)
 
@@ -118,10 +118,10 @@ class BallDetection(Node):
                     self.cx = int(moments["m10"] / moments["m00"])
                     self.cy = int(moments["m01"] / moments["m00"])
                     if self.detect_state == 0:
-                        if self.cx <= 295:
+                        if self.cx <= 285:
                             msg_move.data = "LEFT"
                             self.state = 0
-                        elif self.cx >= 345:
+                        elif self.cx >= 355:
                             msg_move.data = "RIGHT"
                             self.state = 0
                         else:

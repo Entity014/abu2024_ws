@@ -245,13 +245,13 @@ class RobotMainState(Node):
                 msg_gripper_hand.data = [10, 90]
                 if self.color_found:
                     if self.move == "LEFT":
-                        msg_cmd_vel.linear.x = -0.1
-                        msg_cmd_vel.angular.z = 0.4
+                        msg_cmd_vel.linear.x = -0.15
+                        msg_cmd_vel.angular.z = 0.2
                     elif self.move == "RIGHT":
-                        msg_cmd_vel.linear.x = -0.1
-                        msg_cmd_vel.angular.z = -0.4
+                        msg_cmd_vel.linear.x = -0.15
+                        msg_cmd_vel.angular.z = -0.2
                     elif self.move == "CENTER":
-                        msg_cmd_vel.linear.x = -0.1
+                        msg_cmd_vel.linear.x = -0.15
                         msg_cmd_vel.angular.z = 0.0
                 else:
                     if self.color_state == 0:
