@@ -402,7 +402,7 @@ void commandGripper()
     }
     else if ((!digitalRead(TOP_LIM_SWITCH)) == LOW && strcmp(arm_msg.data.data, "TOP") == 0)
     {
-        motor1_controller.spin(250);
+        motor1_controller.spin(512);
     }
     else if ((!digitalRead(BOTTOM_LIM_SWITCH)) == HIGH && strcmp(arm_msg.data.data, "BOTTOM") == 0)
     {
@@ -410,7 +410,7 @@ void commandGripper()
     }
     else if ((!digitalRead(BOTTOM_LIM_SWITCH)) == LOW && strcmp(arm_msg.data.data, "BOTTOM") == 0)
     {
-        motor1_controller.spin(-100);
+        motor1_controller.spin(-200);
     }
 
     servo1_controller.write(theta[0]);
