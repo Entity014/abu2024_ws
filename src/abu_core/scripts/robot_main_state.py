@@ -245,13 +245,13 @@ class RobotMainState(Node):
                 msg_gripper_hand.data = [10, 90]
                 if self.color_found:
                     if self.move == "LEFT":
-                        msg_cmd_vel.linear.x = -0.3
+                        msg_cmd_vel.linear.x = -0.1
                         msg_cmd_vel.angular.z = 0.4
                     elif self.move == "RIGHT":
-                        msg_cmd_vel.linear.x = -0.3
+                        msg_cmd_vel.linear.x = -0.1
                         msg_cmd_vel.angular.z = -0.4
                     elif self.move == "CENTER":
-                        msg_cmd_vel.linear.x = -0.3
+                        msg_cmd_vel.linear.x = -0.1
                         msg_cmd_vel.angular.z = 0.0
                 else:
                     if self.color_state == 0:
@@ -288,6 +288,7 @@ class RobotMainState(Node):
                     elif self.gripper_state == 1:
                         msg_gripper_arm.data = "TOP"
                         self.pub_gripper_arm.publish(msg_gripper_arm)
+                        self.gripper_state = 0
                         self.robot_main_state = 10  # TODO: Edit here
                 elif self.ball_type == 1:
                     if self.gripper_state == 0:
@@ -312,7 +313,7 @@ class RobotMainState(Node):
                     elif self.gripper_state == 3:
                         msg_gripper_hand.data = [65, 90]
                         self.pub_gripper_hand.publish(msg_gripper_hand)
-                        time.sleep(0.6)
+                        time.sleep(0.8)
                         self.gripper_state = 4
                     elif self.gripper_state == 4:
                         msg_gripper_arm.data = "BOTTOM"
@@ -344,7 +345,7 @@ class RobotMainState(Node):
                 elif self.gripper_state == 1:
                     msg_gripper_hand.data = [65, 90]
                     self.pub_gripper_hand.publish(msg_gripper_hand)
-                    time.sleep(0.4)
+                    time.sleep(0.8)
                     self.gripper_state = 2
                 elif self.gripper_state == 2:
                     msg_gripper_arm.data = "BOTTOM"
