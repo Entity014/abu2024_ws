@@ -101,7 +101,7 @@ PWMServo servo3_controller;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMLENS, RGB_LED, NEO_GRB + NEO_KHZ800);
 
 bool motor_bool;
-int theta[2] = {15, 110};
+int theta[2] = {10, 90};
 
 uint16_t i;
 
@@ -133,8 +133,8 @@ void setup()
     servo1_controller.attach(SERVO1);
     servo2_controller.attach(SERVO2);
     servo3_controller.attach(SERVO3);
-    servo1_controller.write(15);
-    servo2_controller.write(110);
+    servo1_controller.write(10);
+    servo2_controller.write(90);
     servo3_controller.write(90);
 
     strip.begin();
@@ -163,8 +163,8 @@ void loop()
         }
         break;
     case AGENT_DISCONNECTED:
-        servo1_controller.write(15);
-        servo2_controller.write(110);
+        servo1_controller.write(10);
+        servo2_controller.write(90);
         servo3_controller.write(90);
         destroyEntities();
         state = WAITING_AGENT;
@@ -418,7 +418,7 @@ void commandGripper()
 
     if (motor_bool)
     {
-        motor2_controller.spin(512);
+        motor2_controller.spin(1023);
     }
     else
     {

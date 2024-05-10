@@ -48,10 +48,6 @@ def generate_launch_description():
     ld.add_action(launch_state)
     ld.add_action(launch_detection)
 
-    os.system(
-        "gnome-terminal -e 'bash -c \"ros2 launch abu_core localization.launch.py\"'"
-    )
-    os.system(
-        "gnome-terminal -e 'bash -c \"ros2 launch abu_core navigation.launch.py\"'"
-    )
+    os.system('gnome-terminal -- bash -c "ros2 launch abu_core localization.launch.py"')
+    os.system('gnome-terminal -- bash -c "ros2 launch abu_core navigation.launch.py"')
     return ld

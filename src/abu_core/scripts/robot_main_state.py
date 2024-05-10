@@ -196,7 +196,7 @@ class RobotMainState(Node):
             self.terminal()
             msg_gripper_motor.data = False
             msg_gripper_arm.data = "BOTTOM"
-            msg_gripper_hand.data = [15, 110]
+            msg_gripper_hand.data = [10, 90]
             if self.team == "BLUE":
                 if self.retry == "none":
                     msg_ip.data = [0.0, 0.0, 0.0]
@@ -237,14 +237,14 @@ class RobotMainState(Node):
                     msg_goal.data = [9.5, 2.0, 1.57]
                 elif self.team == "RED":
                     msg_goal.data = [9.5, 8.9, -1.57]
-                elif self.color_found:
+                if self.color_found:
                     msg_goal.data = [0.0, 0.0, 0.0, 0.0, 0.0]
                     self.robot_main_state = 4
                 self.pub_goal.publish(msg_goal)
             elif self.robot_main_state == 4:  # ? find ball
                 msg_gripper_motor.data = True
                 msg_gripper_arm.data = "BOTTOM"
-                msg_gripper_hand.data = [20, 110]
+                msg_gripper_hand.data = [10, 90]
                 if self.color_found:
                     if self.move == "LEFT":
                         msg_cmd_vel.linear.x = -0.8
@@ -266,10 +266,10 @@ class RobotMainState(Node):
                     msg_cmd_vel.angular.z = 0.0
                     # time.sleep(0.5)
                     self.ball_type = 0
-                    self.robot_main_state = 10  # TODO: Edit here
+                    self.robot_main_state = 5
                 elif self.move == "FAIL":
                     self.ball_type = 1
-                    self.robot_main_state = 10  # TODO: Edit here
+                    self.robot_main_state = 5
 
                 self.pub_cmd_vel.publish(msg_cmd_vel)
                 self.pub_gripper_arm.publish(msg_gripper_arm)
@@ -279,17 +279,17 @@ class RobotMainState(Node):
                 if self.ball_type == 0:
                     msg_cmd_vel.linear.x = 0.0
                     msg_gripper_arm.data = "BOTTOM"
-                    msg_gripper_hand.data = [10, 140]
+                    msg_gripper_hand.data = [10, 110]
                     msg_gripper_motor.data = True
                     self.pub_gripper_arm.publish(msg_gripper_arm)
                     self.pub_gripper_hand.publish(msg_gripper_hand)
                     self.pub_gripper_motor.publish(msg_gripper_motor)
-                    self.robot_main_state = 6
+                    self.robot_main_state = 10  # TODO: Edit here
                 elif self.ball_type == 1:
                     if self.gripper_state == 0:
                         msg_gripper_motor.data = True
                         msg_gripper_arm.data = "BOTTOM"
-                        msg_gripper_hand.data = [10, 140]
+                        msg_gripper_hand.data = [10, 110]
                         self.pub_gripper_arm.publish(msg_gripper_arm)
                         self.pub_gripper_hand.publish(msg_gripper_hand)
                         self.pub_gripper_motor.publish(msg_gripper_motor)
@@ -300,18 +300,18 @@ class RobotMainState(Node):
                         time.sleep(1)
                         self.gripper_state = 2
                     elif self.gripper_state == 2:
-                        msg_gripper_hand.data = [90, 140]
+                        msg_gripper_hand.data = [65, 110]
                         self.pub_gripper_hand.publish(msg_gripper_hand)
                         time.sleep(0.6)
                         self.gripper_state = 3
                     elif self.gripper_state == 3:
-                        msg_gripper_hand.data = [90, 110]
+                        msg_gripper_hand.data = [65, 90]
                         self.pub_gripper_hand.publish(msg_gripper_hand)
                         time.sleep(0.4)
                         self.gripper_state = 4
                     elif self.gripper_state == 4:
                         msg_gripper_arm.data = "BOTTOM"
-                        msg_gripper_hand.data = [0, 130]
+                        msg_gripper_hand.data = [10, 110]
                         msg_gripper_motor.data = False
                         self.pub_gripper_arm.publish(msg_gripper_arm)
                         self.pub_gripper_hand.publish(msg_gripper_hand)
@@ -337,18 +337,18 @@ class RobotMainState(Node):
                     time.sleep(1)
                     self.gripper_state = 1
                 elif self.gripper_state == 1:
-                    msg_gripper_hand.data = [90, 140]
+                    msg_gripper_hand.data = [65, 110]
                     self.pub_gripper_hand.publish(msg_gripper_hand)
                     time.sleep(0.6)
                     self.gripper_state = 2
                 elif self.gripper_state == 2:
-                    msg_gripper_hand.data = [90, 110]
+                    msg_gripper_hand.data = [65, 90]
                     self.pub_gripper_hand.publish(msg_gripper_hand)
                     time.sleep(0.4)
                     self.gripper_state = 3
                 elif self.gripper_state == 3:
                     msg_gripper_arm.data = "BOTTOM"
-                    msg_gripper_hand.data = [0, 130]
+                    msg_gripper_hand.data = [10, 110]
                     self.pub_gripper_arm.publish(msg_gripper_arm)
                     self.pub_gripper_hand.publish(msg_gripper_hand)
                     if self.bottom_limit == 1:
@@ -361,7 +361,7 @@ class RobotMainState(Node):
             self.ball_type = 0
             msg_gripper_arm.data = "BOTTOM"
             msg_gripper_motor.data = False
-            msg_gripper_hand.data = [15, 110]
+            msg_gripper_hand.data = [10, 110]
             msg_goal.data = [0.0, 0.0, 0.0, 0.0, 0.0]
             self.pub_goal.publish(msg_goal)
             self.pub_gripper_arm.publish(msg_gripper_arm)
