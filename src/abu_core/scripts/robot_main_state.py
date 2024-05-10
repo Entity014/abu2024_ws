@@ -314,11 +314,16 @@ class RobotMainState(Node):
                         msg_gripper_hand.data = [65, 90]
                         self.pub_gripper_hand.publish(msg_gripper_hand)
                         time.sleep(0.6)
+                        msg_cmd_vel.linear.x = 0.2
+                        self.pub_cmd_vel.publish(msg_cmd_vel)
+                        time.sleep(0.6)
                         self.gripper_state = 4
                     elif self.gripper_state == 4:
+                        msg_cmd_vel.linear.x = 0.0
                         msg_gripper_arm.data = "BOTTOM"
                         msg_gripper_hand.data = [0, 120]
                         msg_gripper_motor.data = False
+                        self.pub_cmd_vel.publish(msg_cmd_vel)
                         self.pub_gripper_arm.publish(msg_gripper_arm)
                         self.pub_gripper_hand.publish(msg_gripper_hand)
                         self.pub_gripper_motor.publish(msg_gripper_motor)
