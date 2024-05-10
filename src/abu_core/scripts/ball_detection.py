@@ -35,7 +35,7 @@ class BallDetection(Node):
         )
         self.sent_timer = self.create_timer(0.05, self.timer_callback)
 
-        self.cap = cv2.VideoCapture("/dev/video4")
+        self.cap = cv2.VideoCapture("/dev/video2")
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Codec for MP4 format
         self.out = cv2.VideoWriter(
             f"{datetime.datetime.now()}.mp4", fourcc, 20.0, (640, 480)
