@@ -3,7 +3,7 @@ import rclpy
 import math
 import cv2
 import numpy as np
-import time
+import datetime
 
 from rclpy.node import Node
 from std_msgs.msg import Int8, String, Bool
@@ -35,7 +35,11 @@ class BallDetection(Node):
         )
         self.sent_timer = self.create_timer(0.05, self.timer_callback)
 
-        self.cap = cv2.VideoCapture("/dev/video4")
+        self.cap = cv2.VideoCapture("/dev/video2")
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Codec for MP4 format
+        self.out = cv2.VideoWriter(
+            f"{datetime.datetime.now()}.mp4", fourcc, 20.0, (640, 480)
+        )  # 'output.mp4' is the output file name
         self.frame = np.zeros((480, 640, 3), dtype=np.uint8)
         self.r_low = np.array([160, 110, 0])
         self.r_up = np.array([179, 255, 255])
@@ -98,6 +102,7 @@ class BallDetection(Node):
                 self.pub_move.publish(msg_move)
             cv2.line(self.frame, (285, 0), (285, 480), (255, 0, 0), 2)
             cv2.line(self.frame, (355, 0), (355, 480), (255, 0, 0), 2)
+        self.out.write(self.frame)
         cv2.imshow("Camera", self.frame)
         cv2.waitKey(1)
 

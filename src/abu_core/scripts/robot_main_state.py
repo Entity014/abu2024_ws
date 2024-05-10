@@ -242,7 +242,7 @@ class RobotMainState(Node):
             elif self.robot_main_state == 4:  # ? find ball
                 msg_gripper_motor.data = True
                 msg_gripper_arm.data = "BOTTOM"
-                msg_gripper_hand.data = [10, 90]
+                msg_gripper_hand.data = [15, 90]
                 if self.color_found:
                     if self.move == "LEFT":
                         msg_cmd_vel.linear.x = -0.2
