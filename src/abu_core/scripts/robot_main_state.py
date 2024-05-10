@@ -245,13 +245,13 @@ class RobotMainState(Node):
                 msg_gripper_hand.data = [10, 90]
                 if self.color_found:
                     if self.move == "LEFT":
-                        msg_cmd_vel.linear.x = -0.6
+                        msg_cmd_vel.linear.x = -0.3
                         msg_cmd_vel.angular.z = 0.4
                     elif self.move == "RIGHT":
-                        msg_cmd_vel.linear.x = -0.6
+                        msg_cmd_vel.linear.x = -0.3
                         msg_cmd_vel.angular.z = -0.4
                     elif self.move == "CENTER":
-                        msg_cmd_vel.linear.x = -0.6
+                        msg_cmd_vel.linear.x = -0.3
                         msg_cmd_vel.angular.z = 0.0
                 else:
                     if self.color_state == 0:
@@ -275,14 +275,20 @@ class RobotMainState(Node):
                 self.pub_gripper_motor.publish(msg_gripper_motor)
             elif self.robot_main_state == 5:  # ? pick ball
                 if self.ball_type == 0:
-                    msg_cmd_vel.linear.x = 0.0
-                    msg_gripper_arm.data = "BOTTOM"
-                    msg_gripper_hand.data = [0, 120]
-                    msg_gripper_motor.data = True
-                    self.pub_gripper_arm.publish(msg_gripper_arm)
-                    self.pub_gripper_hand.publish(msg_gripper_hand)
-                    self.pub_gripper_motor.publish(msg_gripper_motor)
-                    self.robot_main_state = 10  # TODO: Edit here
+                    if self.gripper_state == 0:
+                        msg_cmd_vel.linear.x = 0.0
+                        msg_gripper_arm.data = "BOTTOM"
+                        msg_gripper_hand.data = [0, 120]
+                        msg_gripper_motor.data = True
+                        self.pub_gripper_arm.publish(msg_gripper_arm)
+                        self.pub_gripper_hand.publish(msg_gripper_hand)
+                        self.pub_gripper_motor.publish(msg_gripper_motor)
+                        time.sleep(0.4)
+                        self.gripper_state = 1
+                    elif self.gripper_state == 1:
+                        msg_gripper_arm.data = "TOP"
+                        self.pub_gripper_arm.publish(msg_gripper_arm)
+                        self.robot_main_state = 10  # TODO: Edit here
                 elif self.ball_type == 1:
                     if self.gripper_state == 0:
                         msg_gripper_motor.data = True
@@ -331,21 +337,16 @@ class RobotMainState(Node):
                 self.pub_goal.publish(msg_goal)
             elif self.robot_main_state == 8:  # ? place ball to silo
                 if self.gripper_state == 0:
-                    msg_gripper_arm.data = "TOP"
-                    self.pub_gripper_arm.publish(msg_gripper_arm)
-                    time.sleep(1)
-                    self.gripper_state = 1
-                elif self.gripper_state == 1:
                     msg_gripper_hand.data = [65, 120]
                     self.pub_gripper_hand.publish(msg_gripper_hand)
                     time.sleep(0.6)
-                    self.gripper_state = 2
-                elif self.gripper_state == 2:
+                    self.gripper_state = 1
+                elif self.gripper_state == 1:
                     msg_gripper_hand.data = [65, 90]
                     self.pub_gripper_hand.publish(msg_gripper_hand)
                     time.sleep(0.4)
-                    self.gripper_state = 3
-                elif self.gripper_state == 3:
+                    self.gripper_state = 2
+                elif self.gripper_state == 2:
                     msg_gripper_arm.data = "BOTTOM"
                     msg_gripper_hand.data = [0, 120]
                     self.pub_gripper_arm.publish(msg_gripper_arm)
@@ -363,7 +364,7 @@ class RobotMainState(Node):
             self.color_state = 0
             msg_gripper_arm.data = "BOTTOM"
             msg_gripper_motor.data = False
-            msg_gripper_hand.data = [10, 110]
+            msg_gripper_hand.data = [10, 90]
             msg_goal.data = [0.0, 0.0, 0.0, 0.0, 0.0]
             self.pub_goal.publish(msg_goal)
             self.pub_gripper_arm.publish(msg_gripper_arm)
