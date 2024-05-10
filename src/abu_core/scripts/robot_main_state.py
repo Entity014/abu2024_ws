@@ -308,12 +308,12 @@ class RobotMainState(Node):
                     elif self.gripper_state == 2:
                         msg_gripper_hand.data = [65, 120]
                         self.pub_gripper_hand.publish(msg_gripper_hand)
-                        time.sleep(0.6)
+                        time.sleep(1)
                         self.gripper_state = 3
                     elif self.gripper_state == 3:
                         msg_gripper_hand.data = [65, 90]
                         self.pub_gripper_hand.publish(msg_gripper_hand)
-                        time.sleep(0.8)
+                        time.sleep(0.6)
                         self.gripper_state = 4
                     elif self.gripper_state == 4:
                         msg_gripper_arm.data = "BOTTOM"
@@ -340,12 +340,12 @@ class RobotMainState(Node):
                 if self.gripper_state == 0:
                     msg_gripper_hand.data = [65, 120]
                     self.pub_gripper_hand.publish(msg_gripper_hand)
-                    time.sleep(0.6)
+                    time.sleep(1)
                     self.gripper_state = 1
                 elif self.gripper_state == 1:
                     msg_gripper_hand.data = [65, 90]
                     self.pub_gripper_hand.publish(msg_gripper_hand)
-                    time.sleep(0.8)
+                    time.sleep(0.6)
                     self.gripper_state = 2
                 elif self.gripper_state == 2:
                     msg_gripper_arm.data = "BOTTOM"
