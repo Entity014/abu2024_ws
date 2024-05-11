@@ -5,7 +5,8 @@
         <visual>
             <origin xyz="0 0 -0.044" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="file://$(find abu_description)/urdf/model/rotation_wheel.dae" scale="1 1 1"/>
+                <cylinder radius="${radius}" length="${width}"/>
+                <!-- <mesh filename="file://$(find abu_description)/urdf/model/rotation_wheel.dae" scale="1 1 1"/> -->
             </geometry>
             <material name="gray">
                 <color rgba="0.123 0.114 0.119 0.8"/>

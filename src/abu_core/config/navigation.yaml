@@ -124,13 +124,13 @@ controller_server:
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: False
-      min_vel_x: -1.4
-      min_vel_y: -1.4
-      max_vel_x: 1.4
-      max_vel_y: 1.4
+      min_vel_x: -1.0
+      min_vel_y: -1.0
+      max_vel_x: 1.0
+      max_vel_y: 1.0
       max_vel_theta: 0.75
-      min_speed_xy: -1.4
-      max_speed_xy: 1.4
+      min_speed_xy: -1.0
+      max_speed_xy: 1.0
       min_speed_theta: -0.75
       acc_lim_x: 2.5
       acc_lim_y: 2.5
@@ -293,7 +293,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.55 #0.55
+        inflation_radius: 0.1 #0.55
       always_send_full_costmap: True
   global_costmap_client:
     ros__parameters:
@@ -370,8 +370,8 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: false
     feedback: "OPEN_LOOP"
-    max_velocity: [1.4, 1.4, 0.75]
-    min_velocity: [-1.4, -1.4, -0.75]
+    max_velocity: [1.0, 1.0, 0.75]
+    min_velocity: [-1.0, -1.0, -0.75]
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
     max_accel: [2.5, 2.5, 3.2]

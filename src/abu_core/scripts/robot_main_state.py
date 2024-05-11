@@ -232,9 +232,9 @@ class RobotMainState(Node):
                 self.pub_goal.publish(msg_goal)
             elif self.robot_main_state == 3:  # ? go to point 4 ( Ball )
                 if self.team == "BLUE":
-                    msg_goal.data = [9.5, 2.0, 1.57]
+                    msg_goal.data = [9.5, 1.0, 1.57]
                 elif self.team == "RED":
-                    msg_goal.data = [9.5, 8.9, -1.57]
+                    msg_goal.data = [9.5, 9.9, -1.57]
                 if self.color_found:
                     msg_goal.data = [0.0, 0.0, 0.0, 0.0, 0.0]
                     self.robot_main_state = 4
