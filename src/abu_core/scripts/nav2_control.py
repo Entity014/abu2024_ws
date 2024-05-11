@@ -161,10 +161,6 @@ class Nav2Control(Node):
 
     def goal_canceled_callback(self, future):
         cancel_response = future.result()
-        if len(cancel_response.goals_canceling) > 0:
-            self.get_logger().info("Cancelling of goal complete")
-        else:
-            self.get_logger().warning("Goal failed to cancel")
 
 
 def main():
