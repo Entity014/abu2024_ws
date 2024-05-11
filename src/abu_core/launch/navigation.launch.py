@@ -57,6 +57,13 @@ def generate_launch_description():
         output="screen",
     )
 
+    node_tf2 = Node(
+        package="tf2_ros",
+        namespace="scan_to_map",
+        executable="static_transform_publisher",
+        arguments=["0", "0", "0", "0", "0", "0", "odom", "map"],
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -65,7 +72,7 @@ def generate_launch_description():
                 description="Enable use_sime_time to true",
             ),
             DeclareLaunchArgument(
-                name="rviz", default_value="false", description="Run rviz"
+                name="rviz", default_value="true", description="Run rviz"
             ),
             DeclareLaunchArgument(
                 name="map",
@@ -83,5 +90,6 @@ def generate_launch_description():
             ),
             nav2_control_node,
             launch_silo,
+            # node_tf2,
         ]
     )

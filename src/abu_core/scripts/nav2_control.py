@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import rclpy
 import math
+import transforms3d
 
 from rclpy.node import Node
+from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
 from std_msgs.msg import Float32MultiArray, Bool
-from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, TransformStamped
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 from tf_transformations import quaternion_from_euler
 from rclpy import qos
@@ -48,6 +50,8 @@ class Nav2Control(Node):
         self.__previous_target_ip = Float32MultiArray()
         self.__previous_state = Bool()
 
+        self.tf_static_broadcaster = StaticTransformBroadcaster(self)
+
     def timer_callback(self):
         state = self.get_state()
         if self.__previous_state != state:
@@ -76,7 +80,20 @@ class Nav2Control(Node):
             ip = self.get_initial_pose(
                 initial_pose.data[0], initial_pose.data[1], initial_pose.data[2]
             )
-            self.pub_ip.publish(ip)
+            t = TransformStamped()
+            t.header.stamp = self.get_clock().now().to_msg()
+            t.header.frame_id = "map"
+            t.child_frame_id = "odom"
+            t.transform.translation.x = initial_pose.data[0]
+            t.transform.translation.y = initial_pose.data[1]
+            t.transform.translation.z = 0.0
+            q = transforms3d.euler.euler2quat(0, 0, 3.14)
+            t.transform.rotation.x = q[0]
+            t.transform.rotation.y = q[1]
+            t.transform.rotation.z = q[2]
+            t.transform.rotation.w = q[3]
+            self.tf_static_broadcaster.sendTransform(t)
+            # self.pub_ip.publish(ip)
             self.__previous_target_ip = initial_pose.data
 
     def get_initial_pose(self, x, y, yaw):

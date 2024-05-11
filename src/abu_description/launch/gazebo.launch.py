@@ -28,7 +28,7 @@ def generate_launch_description():
     )
 
     world_path = PathJoinSubstitution(
-        [FindPackageShare("abu_description"), "worlds", "abu2024_no_model.world"]
+        [FindPackageShare("abu_description"), "worlds", "abu2024_ball_blue.world"]
     )
 
     node_lidar_filter = Node(

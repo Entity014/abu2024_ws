@@ -76,7 +76,7 @@ def generate_launch_description():
         package="tf2_ros",
         namespace="scan_to_map",
         executable="static_transform_publisher",
-        arguments=["0.232", "0", "0", "0", "0", "0", "odom", "scan_filtered"],
+        arguments=["0", "0", "0", "0", "0", "0", "odom", "map"],
     )
     node_imu_connect = Node(
         package="abu_core",
