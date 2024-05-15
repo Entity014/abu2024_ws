@@ -17,7 +17,7 @@ MAP_NAME = "map"  # change to the name of your own map here
 
 def generate_launch_description():
     rviz_config_path = PathJoinSubstitution(
-        [FindPackageShare("abu_description"), "rviz", "navigation.rviz"]
+        [FindPackageShare("abu_core"), "rviz", "navigation.rviz"]
     )
 
     default_map_path = PathJoinSubstitution(

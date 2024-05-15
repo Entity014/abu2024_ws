@@ -41,9 +41,9 @@ class BallDetection(Node):
             f"{datetime.datetime.now()}.mp4", fourcc, 20.0, (640, 480)
         )  # 'output.mp4' is the output file name
         self.frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        self.r_low = np.array([160, 110, 0])
+        self.r_low = np.array([155, 0, 0])
         self.r_up = np.array([179, 255, 255])
-        self.b_low = np.array([80, 100, 180])
+        self.b_low = np.array([0, 160, 60])
         self.b_up = np.array([125, 255, 255])
         self.team = "none"
         self.cx, self.cy = (0, 0)
