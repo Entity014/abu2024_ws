@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  abu_compose:
+    image: abu
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        ROS_DISTRO: humble
+    stdin_open: true
+    tty: true
+    network_mode: host
+    ipc: host
+    privileged: true
+    stop_grace_period: 1s
+    environment:
+      - ROS_DOMAIN_ID=10
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      # mount X11 socket
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
+      # mount workspace
+      - ./src:/home/abu2024_ws/src:rw
+    # command: sleep infinity
+
+    # abu_uros:
+    #   build:
+    #   context: .
+    #   dockerfile: docker_uros/Dockerfile
+    #   args:
+    #     ROS_DISTRO: humble
+    # Test rviz2 containers
+    # test_rviz2:
+    #   extends: abu_compose
+    #   command: ["./entrypoint.sh"]
