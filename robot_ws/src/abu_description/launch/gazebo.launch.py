@@ -31,9 +31,15 @@ def generate_launch_description():
         [FindPackageShare("abu_description"), "worlds", "abu2024_no_model.world"]
     )
 
+    # node_lidar_filter = Node(
+    #     package="laser_filters",
+    #     executable="scan_to_scan_filter_chain",
+    #     parameters=[config_path],
+    # )
+
     node_lidar_filter = Node(
-        package="laser_filters",
-        executable="scan_to_scan_filter_chain",
+        package="abu_core",
+        executable="lidar_filter.py",
         parameters=[config_path],
     )
 

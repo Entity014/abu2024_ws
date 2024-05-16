@@ -28,17 +28,21 @@ ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 RUN touch /home/.bashrc
 RUN echo 'source /opt/ros/$ROS_DISTRO/setup.bash' >> /home/.bashrc
-RUN echo 'source /home/abu2024_ws/install/setup.bash' >> /home/.bashrc
+RUN echo 'source /home/robot_ws/install/setup.bash' >> /home/.bashrc
+
+RUN apt-get install -y ros-${ROS_DISTRO}-xacro ros-${ROS_DISTRO}-laser-filters \
+    ros-${ROS_DISTRO}-robot-localization ros-${ROS_DISTRO}-controller-manager \ 
+    ros-${ROS_DISTRO}-ros2-control ros-${ROS_DISTRO}-ros2-controllers ros-${ROS_DISTRO}-gazebo-ros2-control \
+    ros-${ROS_DISTRO}-joint-state-publisher ros-${ROS_DISTRO}-rtabmap-ros
+# Create abu workspace
+# RUN mkdir -p home/abu2024_ws/src
 
 # Build the base Colcon workspace, installing dependencies first.
-WORKDIR /home/
-RUN git clone https://github.com/Entity014/abu2024_ws.git
-
-RUN cd /home/abu2024_ws \ 
-    && rosdep update \
-    && apt-get update -y \
-    && rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y \
-    && colcon build --symlink-install
+# WORKDIR /home/abu2024_ws
+# RUN rosdep update \
+#     && apt-get update -y \
+#     && rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y \
+#     && colcon build --symlink-install
 
 
 
@@ -53,8 +57,7 @@ ENV XDG_RUNTIME_DIR "/tmp/runtime-root"
 RUN chmod -R 0700 /tmp/runtime-root
 ENV NO_AT_BRIDGE 1
 
-# # Set up the entrypoint
-# # WORKDIR /home/workspace_ws
+# Set up the entrypointe
 # COPY ./docker/entrypoint.sh /
 # RUN chmod +x /entrypoint.sh
 # ENTRYPOINT [ "/entrypoint.sh" ]

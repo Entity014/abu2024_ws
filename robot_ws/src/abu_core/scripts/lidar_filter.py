@@ -40,7 +40,17 @@ class ScanFilter(Node):
         max_angle = self.get_parameter("max_angle").get_parameter_value().double_value
         angles = linspace(msg.angle_min, msg.angle_max, len(msg.ranges))
         points = [
-            r * sin(theta) if (theta < max_angle and theta > min_angle) else inf
+            (
+                r * sin(theta)
+                if (
+                    (theta < 1.25 and theta > -1.25)
+                    or (theta < -1.7 and theta > -2.5)
+                    or (theta < 2.5 and theta > 1.7)
+                    or (theta < 3.15 and theta > 2.71)
+                    or (theta < -2.71 and theta > -3.15)
+                )
+                else inf
+            )
             for r, theta in zip(msg.ranges, angles)
         ]
         # points2 = [

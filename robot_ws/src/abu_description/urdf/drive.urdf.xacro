@@ -10,7 +10,7 @@
             <odometry_topic>odom/unfiltered</odometry_topic>
             <odometry_frame>odom</odometry_frame>
             <odometry_rate>20.0</odometry_rate>
-            <robot_base_frame>base_footprint</robot_base_frame>
+            <robot_base_frame>base_link</robot_base_frame>
             <publish_odom>true</publish_odom>
             <publish_odom_tf>false</publish_odom_tf>
 

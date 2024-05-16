@@ -39,8 +39,8 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(description_launch_path),
         launch_arguments={
             "use_sim_time": "true",
-            "publish_joints": "true",
-            "publish_controller": "false",
+            "publish_joints": "false",
+            "publish_controller": "true",
             "rviz": "false",
         }.items(),
     )
