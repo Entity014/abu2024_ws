@@ -122,9 +122,9 @@ def generate_launch_description():
                 parameters=[{"use_sim_time": use_sim_time}, ekf_config_path],
                 remappings=[("odometry/filtered", "odom")],
             ),
-            # IncludeLaunchDescription(
-            #     PythonLaunchDescriptionSource(rtabmap_launch_path),
-            #     condition=IfCondition(LaunchConfiguration("rtabmap")),
-            # ),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(rtabmap_launch_path),
+                condition=IfCondition(LaunchConfiguration("rtabmap")),
+            ),
         ]
     )
