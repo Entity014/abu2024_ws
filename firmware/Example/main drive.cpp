@@ -60,20 +60,15 @@
 
 //------------------------------ < Define > -------------------------------------//
 
-rcl_publisher_t amp_publisher;
 rcl_publisher_t odom_publisher;
-rcl_publisher_t volt_publisher;
 rcl_publisher_t start_publisher;
 rcl_publisher_t debug_motor_publisher;
 rcl_publisher_t debug_pwm_publisher;
 rcl_publisher_t debug_encoder_publisher;
-rcl_publisher_t debug_heading_publisher;
 // rcl_publisher_t imu_publisher;
 rcl_subscription_t twist_subscriber;
 
 std_msgs__msg__Int8 start_msg;
-std_msgs__msg__Float32 amp_msg;
-std_msgs__msg__Float32 volt_msg;
 nav_msgs__msg__Odometry odom_msg;
 // sensor_msgs__msg__Imu imu_msg;
 geometry_msgs__msg__Twist twist_msg;
@@ -111,11 +106,6 @@ Motor motor2_controller(PWM_FREQUENCY, PWM_BITS, MOTOR2_INV, MOTOR2_PWM, MOTOR2_
 Motor motor3_controller(PWM_FREQUENCY, PWM_BITS, MOTOR3_INV, MOTOR3_PWM, MOTOR3_IN_A, MOTOR3_IN_B);
 Motor motor4_controller(PWM_FREQUENCY, PWM_BITS, MOTOR4_INV, MOTOR4_PWM, MOTOR4_IN_A, MOTOR4_IN_B);
 
-PWMServo servo1_controller;
-PWMServo servo2_controller;
-PWMServo servo3_controller;
-PWMServo servo4_controller;
-
 PID motor1_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
 PID motor2_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
 PID motor3_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
@@ -131,15 +121,6 @@ Kinematics kinematics(
 
 Odometry odometry;
 // IMU imu;
-
-WCS WCS1 = WCS(0, _WCS1700);
-
-SimpleKalmanFilter simpleKalmanFilter(2, 2, 0.01);
-
-float now_heading1 = 90;
-float now_heading2 = 90;
-float now_heading3 = 90;
-float now_heading4 = 90;
 
 //------------------------------ < Fuction Prototype > ------------------------------//
 
@@ -157,10 +138,7 @@ struct timespec getTime();
 
 void setup()
 {
-    WCS1.Reset();
     pinMode(LED_PIN, OUTPUT);
-    pinMode(VOLT_METER, INPUT);
-    pinMode(EMERGENCY, OUTPUT);
     pinMode(START, INPUT_PULLUP);
 
     // bool imu_ok = imu.init();
@@ -174,15 +152,6 @@ void setup()
 
     Serial.begin(115200);
     set_microros_serial_transports(Serial);
-
-    servo1_controller.attach(SERVO1);
-    servo2_controller.attach(SERVO2);
-    servo3_controller.attach(SERVO3);
-    servo4_controller.attach(SERVO4);
-    servo1_controller.write(90);
-    servo2_controller.write(90);
-    servo3_controller.write(90);
-    servo4_controller.write(90);
 }
 
 void loop()
@@ -203,16 +172,10 @@ void loop()
         EXECUTE_EVERY_N_MS(200, state = (RMW_RET_OK == rmw_uros_ping_agent(100, 1)) ? AGENT_CONNECTED : AGENT_DISCONNECTED;);
         if (state == AGENT_CONNECTED)
         {
-            digitalWrite(EMERGENCY, HIGH);
             rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
         }
         break;
     case AGENT_DISCONNECTED:
-        servo1_controller.write(90);
-        servo2_controller.write(90);
-        servo3_controller.write(90);
-        servo4_controller.write(90);
-        digitalWrite(EMERGENCY, LOW);
         destroyEntities();
         state = WAITING_AGENT;
         break;
@@ -252,23 +215,13 @@ bool createEntities()
     rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator);
 
     // create node
-    RCCHECK(rclc_node_init_default(&node, "int32_publisher_rclc", "", &support));
+    RCCHECK(rclc_node_init_default(&node, "drive_teensy", "", &support));
     // create odometry publisher
     RCCHECK(rclc_publisher_init_default(
         &odom_publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(nav_msgs, msg, Odometry),
         "odom/unfiltered"));
-    RCCHECK(rclc_publisher_init_default(
-        &volt_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-        "voltage"));
-    RCCHECK(rclc_publisher_init_default(
-        &amp_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-        "ampere"));
     RCCHECK(rclc_publisher_init_default(
         &start_publisher,
         &node,
@@ -285,18 +238,11 @@ bool createEntities()
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "debug/pwm"));
-
     RCCHECK(rclc_publisher_init_default(
         &debug_encoder_publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "debug/encoder"));
-
-    RCCHECK(rclc_publisher_init_default(
-        &debug_heading_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-        "debug/heading"));
     // create IMU publisher
     // RCCHECK(rclc_publisher_init_default(
     //     &imu_publisher,
@@ -343,11 +289,8 @@ bool destroyEntities()
     rcl_publisher_fini(&debug_motor_publisher, &node);
     rcl_publisher_fini(&debug_pwm_publisher, &node);
     rcl_publisher_fini(&debug_encoder_publisher, &node);
-    rcl_publisher_fini(&debug_heading_publisher, &node);
     rcl_publisher_fini(&start_publisher, &node);
     rcl_publisher_fini(&odom_publisher, &node);
-    rcl_publisher_fini(&volt_publisher, &node);
-    rcl_publisher_fini(&amp_publisher, &node);
     // rcl_publisher_fini(&imu_publisher, &node);
     rcl_subscription_fini(&twist_subscriber, &node);
     rcl_node_fini(&node);
@@ -363,8 +306,6 @@ bool destroyEntities()
 void readSensor()
 {
     start_msg.data = !digitalRead(START);
-    amp_msg.data = WCS1.A_DC();
-    volt_msg.data = map((double)analogRead(VOLT_METER), 0, 1023, 0, 25);
 }
 
 void moveBase()
@@ -382,23 +323,11 @@ void moveBase()
         twist_msg.linear.x,
         twist_msg.linear.y,
         twist_msg.angular.z);
-    Kinematics::heading req_heading = kinematics.getHeading(
-        twist_msg.linear.x,
-        twist_msg.linear.y,
-        twist_msg.angular.z);
 
     float current_rpm1 = motor1_encoder.getRPM();
     float current_rpm2 = motor2_encoder.getRPM();
     float current_rpm3 = motor3_encoder.getRPM();
     float current_rpm4 = motor4_encoder.getRPM();
-    float current_heading1 = 90 + constrain(map(req_heading.motor1 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
-    float current_heading2 = 90 + constrain(map(req_heading.motor2 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
-    float current_heading3 = 90 + constrain(map(req_heading.motor3 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
-    float current_heading4 = 90 + constrain(map(req_heading.motor4 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
-    current_rpm1 = round(simpleKalmanFilter.updateEstimate(current_rpm1));
-    current_rpm2 = round(simpleKalmanFilter.updateEstimate(current_rpm2));
-    current_rpm3 = round(simpleKalmanFilter.updateEstimate(current_rpm3));
-    current_rpm4 = round(simpleKalmanFilter.updateEstimate(current_rpm4));
 
     debug_motor_msg.linear.x = req_rpm.motor1;
     debug_motor_msg.linear.y = req_rpm.motor2;
@@ -409,79 +338,17 @@ void moveBase()
     debug_encoder_msg.linear.z = current_rpm3;
     debug_encoder_msg.angular.x = current_rpm4;
 
-    if (now_heading1 < round(current_heading1))
-    {
-        now_heading1 += map(abs(now_heading1 - current_heading1), 0, 140, 0, 20);
-    }
-    else if (now_heading1 > round(current_heading1))
-    {
-        now_heading1 -= map(abs(now_heading1 - current_heading1), 0, 140, 0, 20);
-    }
+    debug_pwm_msg.linear.x = motor1_pid.compute(req_rpm.motor1, current_rpm1);
+    debug_pwm_msg.linear.y = motor2_pid.compute(req_rpm.motor2, current_rpm2);
+    debug_pwm_msg.linear.z = motor3_pid.compute(req_rpm.motor3, current_rpm3);
+    debug_pwm_msg.angular.x = motor4_pid.compute(req_rpm.motor4, current_rpm4);
 
-    if (now_heading2 < round(current_heading2))
-    {
-        now_heading2 += map(abs(now_heading2 - current_heading2), 0, 140, 0, 20);
-    }
-    else if (now_heading2 > round(current_heading2))
-    {
-        now_heading2 -= map(abs(now_heading2 - current_heading2), 0, 140, 0, 20);
-    }
-
-    if (now_heading3 < round(current_heading3))
-    {
-        now_heading3 += map(abs(now_heading3 - current_heading3), 0, 140, 0, 20);
-    }
-    else if (now_heading3 > round(current_heading3))
-    {
-        now_heading3 -= map(abs(now_heading3 - current_heading3), 0, 140, 0, 20);
-    }
-
-    if (now_heading4 < round(current_heading4))
-    {
-        now_heading4 += map(abs(now_heading4 - current_heading4), 0, 140, 0, 20);
-    }
-    else if (now_heading4 > round(current_heading4))
-    {
-        now_heading4 -= map(abs(now_heading4 - current_heading4), 0, 140, 0, 20);
-    }
-
-    servo1_controller.write(current_heading1);
-    servo2_controller.write(current_heading2);
-    servo3_controller.write(current_heading3);
-    servo4_controller.write(current_heading4);
-
-    debug_heading_msg.linear.x = round(now_heading1);
-    debug_heading_msg.linear.y = round(now_heading2);
-    debug_heading_msg.linear.z = round(now_heading3);
-    debug_heading_msg.angular.x = round(now_heading4);
-    // debug_heading_msg.linear.x = req_heading.motor1 * RAD_TO_DEG;
-    // debug_heading_msg.linear.y = req_heading.motor2 * RAD_TO_DEG;
-    // debug_heading_msg.linear.z = req_heading.motor3 * RAD_TO_DEG;
-    // debug_heading_msg.angular.x = req_heading.motor4 * RAD_TO_DEG;
-
-    if (round(now_heading1) == round(current_heading1))
-    {
-        debug_pwm_msg.linear.x = motor1_pid.compute(req_rpm.motor1, current_rpm1);
-        motor1_controller.spin(motor1_pid.compute(req_rpm.motor1, current_rpm1));
-    }
-    if (round(now_heading2) == round(current_heading2))
-    {
-        debug_pwm_msg.linear.y = motor2_pid.compute(req_rpm.motor2, current_rpm2);
-        motor2_controller.spin(motor2_pid.compute(req_rpm.motor2, current_rpm2));
-    }
-    if (round(now_heading3) == round(current_heading3))
-    {
-        debug_pwm_msg.linear.z = motor3_pid.compute(req_rpm.motor3, current_rpm3);
-        motor3_controller.spin(motor3_pid.compute(req_rpm.motor3, current_rpm3));
-    }
-    if (round(now_heading4) == round(current_heading4))
-    {
-        debug_pwm_msg.angular.x = motor4_pid.compute(req_rpm.motor4, current_rpm4);
-        motor4_controller.spin(motor4_pid.compute(req_rpm.motor4, current_rpm4));
-    }
+    motor1_controller.spin(motor1_pid.compute(req_rpm.motor1, current_rpm1));
+    motor2_controller.spin(motor2_pid.compute(req_rpm.motor2, current_rpm2));
+    motor3_controller.spin(motor3_pid.compute(req_rpm.motor3, current_rpm3));
+    motor4_controller.spin(motor4_pid.compute(req_rpm.motor4, current_rpm4));
 
     Kinematics::velocities current_vel = kinematics.getVelocities(
-        req_heading,
         current_rpm1,
         current_rpm2,
         current_rpm3,
@@ -511,14 +378,11 @@ void publishData()
     // imu_msg.header.stamp.nanosec = time_stamp.tv_nsec;
 
     // RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&amp_publisher, &amp_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&volt_publisher, &volt_msg, NULL));
     RCSOFTCHECK(rcl_publish(&odom_publisher, &odom_msg, NULL));
     RCSOFTCHECK(rcl_publish(&start_publisher, &start_msg, NULL));
     RCSOFTCHECK(rcl_publish(&debug_pwm_publisher, &debug_pwm_msg, NULL));
     RCSOFTCHECK(rcl_publish(&debug_motor_publisher, &debug_motor_msg, NULL));
     RCSOFTCHECK(rcl_publish(&debug_encoder_publisher, &debug_encoder_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&debug_heading_publisher, &debug_heading_msg, NULL));
 }
 
 void syncTime()

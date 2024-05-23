@@ -81,6 +81,7 @@ install(PROGRAMS
   scripts/lidar_filter.py
   scripts/nav2_control.py
   scripts/ball_detection.py
+  scripts/ball_model.py
   scripts/robot_main_state.py
   scripts/silo_broadcaster.py
   scripts/silo_listener.py
@@ -98,7 +99,7 @@ install(
 # )
 
 install(
-  DIRECTORY config launch bt_xml rviz
+  DIRECTORY config launch bt_xml rviz weights
   DESTINATION share/${PROJECT_NAME}
 )
 

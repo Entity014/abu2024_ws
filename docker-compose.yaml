@@ -24,6 +24,7 @@ services:
       - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
       # mount workspace
       - ./robot_ws:/home/robot_ws:rw
+      - /dev:/dev
     # command: sleep infinity
 
   uros1-agent:
@@ -35,10 +36,10 @@ services:
     privileged: true
     stop_grace_period: 1s
     devices:
-      - ${SERIAL_PORT:-/dev/ttyACM0}
+      - /dev/ttyACM0:/dev/ttyACM0
     environment:
       - ROS_DOMAIN_ID=10
-    command: ros2 run micro_ros_agent micro_ros_agent serial -D ${SERIAL_PORT:-/dev/ttyACM0} serial -b 115200
+    command: ros2 run micro_ros_agent micro_ros_agent serial -D /dev/ttyACM0 serial -b 115200
   
   uros2-agent:
     image: husarion/micro-ros-agent:humble
@@ -49,16 +50,28 @@ services:
     privileged: true
     stop_grace_period: 1s
     devices:
-      - ${SERIAL_PORT:-/dev/ttyACM1}
+      -  /dev/ttyACM1:/dev/ttyACM1
     environment:
       - ROS_DOMAIN_ID=10
-    command: ros2 run micro_ros_agent micro_ros_agent serial -D ${SERIAL_PORT:-/dev/ttyACM1} serial -b 115200
+    command: ros2 run micro_ros_agent micro_ros_agent serial -D /dev/ttyACM1 serial -b 115200
 
-  gazebo:
+  localization:
     extends: abu_compose
-    command: bash -c "source ~/.bashrc && ros2 launch abu_description gazebo.launch.py"
+    command: bash -c "source ~/.bashrc && ros2 launch abu_core localization.launch.py"
   
+  detection:
+    extends: abu_compose
+    command: bash -c "source ~/.bashrc && ros2 launch abu_core detection.launch.py"
+  
+  robot_state:
+    extends: abu_compose
+    command: bash -c "source ~/.bashrc && ros2 launch abu_core state.launch.py"
+
   navigation:
     extends: abu_compose
     command: bash -c "source ~/.bashrc && ros2 launch abu_core navigation.launch.py"
 
+  # gazebo:
+  #   extends: abu_compose
+  #   command: bash -c "source ~/.bashrc && ros2 launch abu_description gazebo.launch.py"
+  

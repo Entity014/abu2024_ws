@@ -2,5 +2,5 @@
 version=1.0
 Type=Application
 Terminal=true
-Exec=bash -i -c "source ~/.bashrc && ros2 launch abu_core bringup.launch.py"
-Name=Robot Bring up
+Exec=bash -i -c "source ~/.bashrc && cd ~/abu2024_ws && docker compose up -d"
+Name=Robot Bring Up

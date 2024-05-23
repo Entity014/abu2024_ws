@@ -43,11 +43,11 @@ class ScanFilter(Node):
             (
                 r * sin(theta)
                 if (
-                    (theta < 1.25 and theta > -1.25)
-                    or (theta < -1.7 and theta > -2.5)
-                    or (theta < 2.5 and theta > 1.7)
-                    or (theta < 3.15 and theta > 2.71)
-                    or (theta < -2.71 and theta > -3.15)
+                    (theta < 1.1 and theta > -1.25)
+                    or (theta < -1.7 and theta > -2.605)
+                    or (theta < 2.43 and theta > 1.5)
+                    or (theta < 3.15 and theta > 2.83)
+                    or (theta < -3.065 and theta > -3.15)
                 )
                 else inf
             )

@@ -2,31 +2,21 @@
 #include <micro_ros_platformio.h>
 #include <stdio.h>
 #include <PWMServo.h>
-#include <WinsonLib.h>
-#include <SimpleKalmanFilter.h>
+#include <Adafruit_NeoPixel.h>
 
 #include <rcl/rcl.h>
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 
-#include <std_msgs/msg/int8.h>
 #include <std_msgs/msg/string.h>
-#include <sensor_msgs/msg/imu.h>
-#include <std_msgs/msg/float32.h>
-#include <nav_msgs/msg/odometry.h>
+#include <std_msgs/msg/bool.h>
+#include <std_msgs/msg/int8.h>
+#include <std_msgs/msg/int16_multi_array.h>
 #include <geometry_msgs/msg/twist.h>
-#include <geometry_msgs/msg/vector3.h>
 
 #include "config.h"
 #include "motor.h"
-#include "kinematics.h"
-#include "pid.h"
-#include "odometry.h"
-#include "imu.h"
-#define ENCODER_USE_INTERRUPTS
-#define ENCODER_OPTIMIZE_INTERRUPTS
-#include "encoder.h"
 
 #define RCCHECK(fn)                  \
     {                                \
@@ -60,38 +50,33 @@
 
 //------------------------------ < Define > -------------------------------------//
 
-rcl_publisher_t amp_publisher;
-rcl_publisher_t odom_publisher;
-rcl_publisher_t volt_publisher;
-rcl_publisher_t start_publisher;
-rcl_publisher_t debug_motor_publisher;
-rcl_publisher_t debug_pwm_publisher;
-rcl_publisher_t debug_encoder_publisher;
-rcl_publisher_t debug_heading_publisher;
-// rcl_publisher_t imu_publisher;
-rcl_subscription_t twist_subscriber;
+rcl_publisher_t debug_publisher;
+rcl_publisher_t limit_publisher;
+// rcl_publisher_t color_publisher;
+rcl_subscription_t arm_subscriber;
+rcl_subscription_t hand_subscriber;
+rcl_subscription_t motor_subscriber;
+rcl_subscription_t state_subscriber;
+rcl_subscription_t main_subscriber;
 
-std_msgs__msg__Int8 start_msg;
-std_msgs__msg__Float32 amp_msg;
-std_msgs__msg__Float32 volt_msg;
-nav_msgs__msg__Odometry odom_msg;
-// sensor_msgs__msg__Imu imu_msg;
-geometry_msgs__msg__Twist twist_msg;
-geometry_msgs__msg__Twist debug_motor_msg;
-geometry_msgs__msg__Twist debug_pwm_msg;
-geometry_msgs__msg__Twist debug_encoder_msg;
-geometry_msgs__msg__Twist debug_heading_msg;
+geometry_msgs__msg__Twist debug_msg;
+geometry_msgs__msg__Twist limit_msg;
+std_msgs__msg__Bool motor_msg;
+std_msgs__msg__String arm_msg;
+std_msgs__msg__String state_msg;
+std_msgs__msg__Int8 main_msg;
+std_msgs__msg__Int16MultiArray hand_msg;
+// std_msgs__msg__Int16MultiArray color_msg;
 
 rclc_executor_t executor;
 rclc_support_t support;
 rcl_allocator_t allocator;
 rcl_node_t node;
 rcl_timer_t control_timer;
+rcl_timer_t rgb_timer;
 rcl_init_options_t init_options;
 
 unsigned long long time_offset = 0;
-unsigned long prev_cmd_time = 0;
-unsigned long prev_odom_update = 0;
 
 enum states
 {
@@ -101,88 +86,59 @@ enum states
     AGENT_DISCONNECTED
 } state;
 
-Encoder motor1_encoder(MOTOR1_ENCODER_A, MOTOR1_ENCODER_B, COUNTS_PER_REV1, MOTOR1_ENCODER_INV);
-Encoder motor2_encoder(MOTOR2_ENCODER_A, MOTOR2_ENCODER_B, COUNTS_PER_REV2, MOTOR2_ENCODER_INV);
-Encoder motor3_encoder(MOTOR3_ENCODER_A, MOTOR3_ENCODER_B, COUNTS_PER_REV3, MOTOR3_ENCODER_INV);
-Encoder motor4_encoder(MOTOR4_ENCODER_A, MOTOR4_ENCODER_B, COUNTS_PER_REV4, MOTOR4_ENCODER_INV);
+struct rgb_colors
+{
+    int r, g, b;
+};
 
 Motor motor1_controller(PWM_FREQUENCY, PWM_BITS, MOTOR1_INV, MOTOR1_PWM, MOTOR1_IN_A, MOTOR1_IN_B);
 Motor motor2_controller(PWM_FREQUENCY, PWM_BITS, MOTOR2_INV, MOTOR2_PWM, MOTOR2_IN_A, MOTOR2_IN_B);
-Motor motor3_controller(PWM_FREQUENCY, PWM_BITS, MOTOR3_INV, MOTOR3_PWM, MOTOR3_IN_A, MOTOR3_IN_B);
-Motor motor4_controller(PWM_FREQUENCY, PWM_BITS, MOTOR4_INV, MOTOR4_PWM, MOTOR4_IN_A, MOTOR4_IN_B);
 
 PWMServo servo1_controller;
 PWMServo servo2_controller;
 PWMServo servo3_controller;
-PWMServo servo4_controller;
 
-PID motor1_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
-PID motor2_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
-PID motor3_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
-PID motor4_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMLENS, RGB_LED, NEO_GRB + NEO_KHZ800);
 
-Kinematics kinematics(
-    Kinematics::SWERVE,
-    MOTOR_MAX_RPM,
-    MAX_RPM_RATIO,
-    RPM_RATIO,
-    WHEEL_DIAMETER,
-    LR_WHEELS_DISTANCE);
+bool motor_bool;
+int theta[2] = {2, 30};
 
-Odometry odometry;
-// IMU imu;
-
-WCS WCS1 = WCS(0, _WCS1700);
-
-SimpleKalmanFilter simpleKalmanFilter(2, 2, 0.01);
-
-float now_heading1 = 90;
-float now_heading2 = 90;
-float now_heading3 = 90;
-float now_heading4 = 90;
+uint16_t i;
 
 //------------------------------ < Fuction Prototype > ------------------------------//
 
 void flashLED(int n_times);
 void rclErrorLoop();
 void syncTime();
-void moveBase();
-void readSensor();
+void commandGripper();
 void publishData();
+void rgbLED();
+void flash_rgbLED();
 bool createEntities();
 bool destroyEntities();
+rgb_colors GetColors();
 struct timespec getTime();
 
 //------------------------------ < Main > -------------------------------------//
 
 void setup()
 {
-    WCS1.Reset();
     pinMode(LED_PIN, OUTPUT);
-    pinMode(VOLT_METER, INPUT);
-    pinMode(EMERGENCY, OUTPUT);
-    pinMode(START, INPUT_PULLUP);
-
-    // bool imu_ok = imu.init();
-    // if (!imu_ok)
-    // {
-    //     while (1)
-    //     {
-    //         flashLED(3);
-    //     }
-    // }
 
     Serial.begin(115200);
     set_microros_serial_transports(Serial);
+    pinMode(TOP_LIM_SWITCH, INPUT_PULLUP);
+    pinMode(BOTTOM_LIM_SWITCH, INPUT_PULLUP);
 
     servo1_controller.attach(SERVO1);
     servo2_controller.attach(SERVO2);
     servo3_controller.attach(SERVO3);
-    servo4_controller.attach(SERVO4);
-    servo1_controller.write(90);
-    servo2_controller.write(90);
+    servo1_controller.write(2);
+    servo2_controller.write(30);
     servo3_controller.write(90);
-    servo4_controller.write(90);
+
+    strip.begin();
+    strip.setBrightness(80); // 1/3 brightness
 }
 
 void loop()
@@ -203,16 +159,13 @@ void loop()
         EXECUTE_EVERY_N_MS(200, state = (RMW_RET_OK == rmw_uros_ping_agent(100, 1)) ? AGENT_CONNECTED : AGENT_DISCONNECTED;);
         if (state == AGENT_CONNECTED)
         {
-            digitalWrite(EMERGENCY, HIGH);
             rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
         }
         break;
     case AGENT_DISCONNECTED:
-        servo1_controller.write(90);
-        servo2_controller.write(90);
+        servo1_controller.write(2);
+        servo2_controller.write(30);
         servo3_controller.write(90);
-        servo4_controller.write(90);
-        digitalWrite(EMERGENCY, LOW);
         destroyEntities();
         state = WAITING_AGENT;
         break;
@@ -228,17 +181,67 @@ void controlCallback(rcl_timer_t *timer, int64_t last_call_time)
     RCLC_UNUSED(last_call_time);
     if (timer != NULL)
     {
-        readSensor();
-        moveBase();
+        commandGripper();
         publishData();
     }
 }
 
-void twistCallback(const void *msgin)
+void rgbCallback(rcl_timer_t *timer, int64_t last_call_time)
+{
+    RCLC_UNUSED(last_call_time);
+    if (timer != NULL)
+    {
+        // strip.clear();
+        // strip.show();
+        if (strcmp(state_msg.data.data, "IDLE") == 0)
+        {
+            flash_rgbLED();
+        }
+        else if (strcmp(state_msg.data.data, "START") == 0)
+        {
+            rgbLED();
+        }
+        else if (strcmp(state_msg.data.data, "RESET") == 0)
+        {
+            flash_rgbLED();
+        }
+        else
+        {
+            rgbLED();
+        }
+    }
+}
+
+void armCallback(const void *msgin)
 {
     digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+}
 
-    prev_cmd_time = millis();
+void handCallback(const void *msgin)
+{
+    theta[0] = hand_msg.data.data[0];
+    theta[1] = hand_msg.data.data[1];
+}
+
+void motorCallback(const void *msgin)
+{
+    motor_bool = motor_msg.data;
+}
+
+void stateCallback(const void *msgin)
+{
+    if (strcmp(state_msg.data.data, "START") == 0)
+    {
+        servo3_controller.write(0);
+    }
+    else
+    {
+        servo3_controller.write(90);
+    }
+}
+
+void mainCallback(const void *msgin)
+{
 }
 
 bool createEntities()
@@ -250,66 +253,69 @@ bool createEntities()
     rcl_init_options_set_domain_id(&init_options, 10);
 
     rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator);
+    RCCHECK(rclc_node_init_default(&node, "gripper_teensy", "", &support));
 
-    // create node
-    RCCHECK(rclc_node_init_default(&node, "int32_publisher_rclc", "", &support));
-    // create odometry publisher
     RCCHECK(rclc_publisher_init_default(
-        &odom_publisher,
+        &debug_publisher,
         &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(nav_msgs, msg, Odometry),
-        "odom/unfiltered"));
+        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
+        "debug/gripper"));
     RCCHECK(rclc_publisher_init_default(
-        &volt_publisher,
+        &limit_publisher,
         &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-        "voltage"));
-    RCCHECK(rclc_publisher_init_default(
-        &amp_publisher,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
+        "gripper/limit"));
+
+    // RCCHECK(rclc_publisher_init_default(
+    //     &color_publisher,
+    //     &node,
+    //     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int16MultiArray),
+    //     "gripper/color"));
+
+    // color_msg.data.capacity = 3;
+    // color_msg.data.size = 3;
+    // color_msg.data.data = (int16_t *)malloc(color_msg.data.capacity * sizeof(int16_t));
+
+    RCCHECK(rclc_subscription_init_default(
+        &arm_subscriber,
         &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-        "ampere"));
-    RCCHECK(rclc_publisher_init_default(
-        &start_publisher,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+        "gripper/arm"));
+
+    arm_msg.data.capacity = 10;
+    arm_msg.data.size = 10;
+    arm_msg.data.data = (char *)malloc(arm_msg.data.capacity * sizeof(char));
+
+    RCCHECK(rclc_subscription_init_default(
+        &hand_subscriber,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int16MultiArray),
+        "gripper/hand"));
+
+    hand_msg.data.capacity = 2;
+    hand_msg.data.size = 2;
+    hand_msg.data.data = (int16_t *)malloc(hand_msg.data.capacity * sizeof(int16_t));
+
+    RCCHECK(rclc_subscription_init_default(
+        &motor_subscriber,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
+        "gripper/motor"));
+
+    RCCHECK(rclc_subscription_init_default(
+        &state_subscriber,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+        "robot/state"));
+    state_msg.data.capacity = 10;
+    state_msg.data.size = 10;
+    state_msg.data.data = (char *)malloc(state_msg.data.capacity * sizeof(char));
+
+    RCCHECK(rclc_subscription_init_default(
+        &main_subscriber,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int8),
-        "button/start"));
-
-    RCCHECK(rclc_publisher_init_default(
-        &debug_motor_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-        "debug/motor"));
-    RCCHECK(rclc_publisher_init_default(
-        &debug_pwm_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-        "debug/pwm"));
-
-    RCCHECK(rclc_publisher_init_default(
-        &debug_encoder_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-        "debug/encoder"));
-
-    RCCHECK(rclc_publisher_init_default(
-        &debug_heading_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-        "debug/heading"));
-    // create IMU publisher
-    // RCCHECK(rclc_publisher_init_default(
-    //     &imu_publisher,
-    //     &node,
-    //     ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
-    //     "imu/data"));
-
-    // create twist command subscriber
-    RCCHECK(rclc_subscription_init_default(
-        &twist_subscriber,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-        "cmd_vel"));
+        "robot/main"));
 
     // create timer for actuating the motors at 50 Hz (1000/20)
     const unsigned int control_timeout = 20;
@@ -318,15 +324,46 @@ bool createEntities()
         &support,
         RCL_MS_TO_NS(control_timeout),
         controlCallback));
+    RCCHECK(rclc_timer_init_default(
+        &rgb_timer,
+        &support,
+        RCL_MS_TO_NS(20),
+        rgbCallback));
+
     executor = rclc_executor_get_zero_initialized_executor();
-    RCCHECK(rclc_executor_init(&executor, &support.context, 2, &allocator));
+    RCCHECK(rclc_executor_init(&executor, &support.context, 7, &allocator));
     RCCHECK(rclc_executor_add_subscription(
         &executor,
-        &twist_subscriber,
-        &twist_msg,
-        &twistCallback,
+        &arm_subscriber,
+        &arm_msg,
+        &armCallback,
+        ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(
+        &executor,
+        &hand_subscriber,
+        &hand_msg,
+        &handCallback,
+        ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(
+        &executor,
+        &motor_subscriber,
+        &motor_msg,
+        &motorCallback,
+        ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(
+        &executor,
+        &state_subscriber,
+        &state_msg,
+        &stateCallback,
+        ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(
+        &executor,
+        &main_subscriber,
+        &main_msg,
+        &mainCallback,
         ON_NEW_DATA));
     RCCHECK(rclc_executor_add_timer(&executor, &control_timer));
+    RCCHECK(rclc_executor_add_timer(&executor, &rgb_timer));
 
     // synchronize time with the agent
     syncTime();
@@ -340,18 +377,15 @@ bool destroyEntities()
     rmw_context_t *rmw_context = rcl_context_get_rmw_context(&support.context);
     (void)rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0);
 
-    rcl_publisher_fini(&debug_motor_publisher, &node);
-    rcl_publisher_fini(&debug_pwm_publisher, &node);
-    rcl_publisher_fini(&debug_encoder_publisher, &node);
-    rcl_publisher_fini(&debug_heading_publisher, &node);
-    rcl_publisher_fini(&start_publisher, &node);
-    rcl_publisher_fini(&odom_publisher, &node);
-    rcl_publisher_fini(&volt_publisher, &node);
-    rcl_publisher_fini(&amp_publisher, &node);
-    // rcl_publisher_fini(&imu_publisher, &node);
-    rcl_subscription_fini(&twist_subscriber, &node);
+    rcl_publisher_fini(&debug_publisher, &node);
+    rcl_publisher_fini(&limit_publisher, &node);
+    // rcl_publisher_fini(&color_publisher, &node);
+    rcl_subscription_fini(&motor_subscriber, &node);
+    rcl_subscription_fini(&hand_subscriber, &node);
+    rcl_subscription_fini(&arm_subscriber, &node);
     rcl_node_fini(&node);
     rcl_timer_fini(&control_timer);
+    rcl_timer_fini(&rgb_timer);
     rclc_executor_fini(&executor);
     rclc_support_fini(&support);
 
@@ -360,165 +394,57 @@ bool destroyEntities()
     return true;
 }
 
-void readSensor()
+void commandGripper()
 {
-    start_msg.data = !digitalRead(START);
-    amp_msg.data = WCS1.A_DC();
-    volt_msg.data = map((double)analogRead(VOLT_METER), 0, 1023, 0, 25);
-}
-
-void moveBase()
-{
-    if (((millis() - prev_cmd_time) >= 200))
+    if ((!digitalRead(TOP_LIM_SWITCH)) == HIGH && strcmp(arm_msg.data.data, "TOP") == 0)
     {
-        twist_msg.linear.x = 0.0;
-        twist_msg.linear.y = 0.0;
-        twist_msg.angular.z = 0.0;
-
-        digitalWrite(LED_PIN, HIGH);
+        motor1_controller.brake();
+    }
+    else if ((!digitalRead(TOP_LIM_SWITCH)) == LOW && strcmp(arm_msg.data.data, "TOP") == 0)
+    {
+        motor1_controller.spin(512);
+    }
+    else if ((!digitalRead(BOTTOM_LIM_SWITCH)) == HIGH && strcmp(arm_msg.data.data, "BOTTOM") == 0)
+    {
+        motor1_controller.brake();
+    }
+    else if ((!digitalRead(BOTTOM_LIM_SWITCH)) == LOW && strcmp(arm_msg.data.data, "BOTTOM") == 0)
+    {
+        motor1_controller.spin(-200);
     }
 
-    Kinematics::rpm req_rpm = kinematics.getRPM(
-        twist_msg.linear.x,
-        twist_msg.linear.y,
-        twist_msg.angular.z);
-    Kinematics::heading req_heading = kinematics.getHeading(
-        twist_msg.linear.x,
-        twist_msg.linear.y,
-        twist_msg.angular.z);
+    servo1_controller.write(theta[0]);
+    servo2_controller.write(theta[1]);
 
-    float current_rpm1 = motor1_encoder.getRPM();
-    float current_rpm2 = motor2_encoder.getRPM();
-    float current_rpm3 = motor3_encoder.getRPM();
-    float current_rpm4 = motor4_encoder.getRPM();
-    float current_heading1 = 90 + constrain(map(req_heading.motor1 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
-    float current_heading2 = 90 + constrain(map(req_heading.motor2 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
-    float current_heading3 = 90 + constrain(map(req_heading.motor3 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
-    float current_heading4 = 90 + constrain(map(req_heading.motor4 * RAD_TO_DEG, -180, 180, -140, 140), -70, 70);
-    current_rpm1 = round(simpleKalmanFilter.updateEstimate(current_rpm1));
-    current_rpm2 = round(simpleKalmanFilter.updateEstimate(current_rpm2));
-    current_rpm3 = round(simpleKalmanFilter.updateEstimate(current_rpm3));
-    current_rpm4 = round(simpleKalmanFilter.updateEstimate(current_rpm4));
-
-    debug_motor_msg.linear.x = req_rpm.motor1;
-    debug_motor_msg.linear.y = req_rpm.motor2;
-    debug_motor_msg.linear.z = req_rpm.motor3;
-    debug_motor_msg.angular.x = req_rpm.motor4;
-    debug_encoder_msg.linear.x = current_rpm1;
-    debug_encoder_msg.linear.y = current_rpm2;
-    debug_encoder_msg.linear.z = current_rpm3;
-    debug_encoder_msg.angular.x = current_rpm4;
-
-    if (now_heading1 < round(current_heading1))
+    if (motor_bool)
     {
-        now_heading1 += map(abs(now_heading1 - current_heading1), 0, 140, 0, 20);
+        motor2_controller.spin(1023);
     }
-    else if (now_heading1 > round(current_heading1))
+    else
     {
-        now_heading1 -= map(abs(now_heading1 - current_heading1), 0, 140, 0, 20);
+        motor2_controller.spin(0);
     }
 
-    if (now_heading2 < round(current_heading2))
-    {
-        now_heading2 += map(abs(now_heading2 - current_heading2), 0, 140, 0, 20);
-    }
-    else if (now_heading2 > round(current_heading2))
-    {
-        now_heading2 -= map(abs(now_heading2 - current_heading2), 0, 140, 0, 20);
-    }
+    // rgb_colors rgb;
+    // rgb = GetColors();
+    // color_msg.data.data[0] = rgb.r; // Example value
+    // color_msg.data.data[1] = rgb.g; // Example value
+    // color_msg.data.data[2] = rgb.b; // Example value
 
-    if (now_heading3 < round(current_heading3))
-    {
-        now_heading3 += map(abs(now_heading3 - current_heading3), 0, 140, 0, 20);
-    }
-    else if (now_heading3 > round(current_heading3))
-    {
-        now_heading3 -= map(abs(now_heading3 - current_heading3), 0, 140, 0, 20);
-    }
-
-    if (now_heading4 < round(current_heading4))
-    {
-        now_heading4 += map(abs(now_heading4 - current_heading4), 0, 140, 0, 20);
-    }
-    else if (now_heading4 > round(current_heading4))
-    {
-        now_heading4 -= map(abs(now_heading4 - current_heading4), 0, 140, 0, 20);
-    }
-
-    servo1_controller.write(current_heading1);
-    servo2_controller.write(current_heading2);
-    servo3_controller.write(current_heading3);
-    servo4_controller.write(current_heading4);
-
-    debug_heading_msg.linear.x = round(now_heading1);
-    debug_heading_msg.linear.y = round(now_heading2);
-    debug_heading_msg.linear.z = round(now_heading3);
-    debug_heading_msg.angular.x = round(now_heading4);
-    // debug_heading_msg.linear.x = req_heading.motor1 * RAD_TO_DEG;
-    // debug_heading_msg.linear.y = req_heading.motor2 * RAD_TO_DEG;
-    // debug_heading_msg.linear.z = req_heading.motor3 * RAD_TO_DEG;
-    // debug_heading_msg.angular.x = req_heading.motor4 * RAD_TO_DEG;
-
-    if (round(now_heading1) == round(current_heading1))
-    {
-        debug_pwm_msg.linear.x = motor1_pid.compute(req_rpm.motor1, current_rpm1);
-        motor1_controller.spin(motor1_pid.compute(req_rpm.motor1, current_rpm1));
-    }
-    if (round(now_heading2) == round(current_heading2))
-    {
-        debug_pwm_msg.linear.y = motor2_pid.compute(req_rpm.motor2, current_rpm2);
-        motor2_controller.spin(motor2_pid.compute(req_rpm.motor2, current_rpm2));
-    }
-    if (round(now_heading3) == round(current_heading3))
-    {
-        debug_pwm_msg.linear.z = motor3_pid.compute(req_rpm.motor3, current_rpm3);
-        motor3_controller.spin(motor3_pid.compute(req_rpm.motor3, current_rpm3));
-    }
-    if (round(now_heading4) == round(current_heading4))
-    {
-        debug_pwm_msg.angular.x = motor4_pid.compute(req_rpm.motor4, current_rpm4);
-        motor4_controller.spin(motor4_pid.compute(req_rpm.motor4, current_rpm4));
-    }
-
-    Kinematics::velocities current_vel = kinematics.getVelocities(
-        req_heading,
-        current_rpm1,
-        current_rpm2,
-        current_rpm3,
-        current_rpm4);
-
-    unsigned long now = millis();
-    float vel_dt = (now - prev_odom_update) / 1000.0;
-    prev_odom_update = now;
-    odometry.update(
-        vel_dt,
-        current_vel.linear_x,
-        current_vel.linear_y,
-        current_vel.angular_z);
+    debug_msg.linear.x = 0.0;
+    debug_msg.linear.y = !digitalRead(TOP_LIM_SWITCH);
+    debug_msg.linear.z = !digitalRead(BOTTOM_LIM_SWITCH);
+    limit_msg.linear.x = !digitalRead(TOP_LIM_SWITCH);
+    limit_msg.linear.y = !digitalRead(BOTTOM_LIM_SWITCH);
 }
 
 void publishData()
 {
-    odom_msg = odometry.getData();
-    // imu_msg = imu.getData();
-
     struct timespec time_stamp = getTime();
 
-    odom_msg.header.stamp.sec = time_stamp.tv_sec;
-    odom_msg.header.stamp.nanosec = time_stamp.tv_nsec;
-
-    // imu_msg.header.stamp.sec = time_stamp.tv_sec;
-    // imu_msg.header.stamp.nanosec = time_stamp.tv_nsec;
-
-    // RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&amp_publisher, &amp_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&volt_publisher, &volt_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&odom_publisher, &odom_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&start_publisher, &start_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&debug_pwm_publisher, &debug_pwm_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&debug_motor_publisher, &debug_motor_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&debug_encoder_publisher, &debug_encoder_msg, NULL));
-    RCSOFTCHECK(rcl_publish(&debug_heading_publisher, &debug_heading_msg, NULL));
+    RCSOFTCHECK(rcl_publish(&debug_publisher, &debug_msg, NULL));
+    RCSOFTCHECK(rcl_publish(&limit_publisher, &limit_msg, NULL));
+    // RCSOFTCHECK(rcl_publish(&color_publisher, &color_msg, NULL));
 }
 
 void syncTime()
@@ -561,4 +487,57 @@ void flashLED(int n_times)
         delay(150);
     }
     delay(1000);
+}
+
+uint32_t colorType()
+{
+    if (strcmp(state_msg.data.data, "IDLE") == 0)
+    {
+        return strip.Color(230, 3, 255);
+    }
+    else if (strcmp(state_msg.data.data, "START") == 0)
+    {
+        return strip.Color(230, 3, 255);
+    }
+    else if (strcmp(state_msg.data.data, "RESET") == 0)
+    {
+        return strip.Color(255, 3, 3);
+    }
+    else
+    {
+        return strip.Color(255, 209, 3);
+    }
+}
+
+void rgbLED()
+{
+    if (i < strip.numPixels())
+    {
+        strip.setPixelColor(i, colorType());
+
+        strip.show();
+
+        i++;
+    }
+    else if (i == strip.numPixels())
+    {
+        i = 0;
+    }
+}
+
+void flash_rgbLED()
+{
+    if (i < strip.numPixels())
+    {
+        strip.setPixelColor(i, colorType());
+
+        strip.show();
+
+        i++;
+    }
+    else if (i == strip.numPixels())
+    {
+        strip.clear();
+        i = 0;
+    }
 }

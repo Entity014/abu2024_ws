@@ -12,7 +12,7 @@ def generate_launch_description():
 
     node_ball_detection = Node(
         package="abu_core",
-        executable="ball_detection.py",
+        executable="ball_model.py",
     )
 
     ld.add_action(node_ball_detection)

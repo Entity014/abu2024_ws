@@ -11,15 +11,23 @@ SHELL ["/bin/bash", "-c"]
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git libcanberra-gtk-module libcanberra-gtk3-module fuse3 libfuse2 libqt5svg5-dev \
     python3-pip python3-opencv python3-tk python3-pyqt5.qtwebengine nano gedit
-
 # Install Nav2 packages
 RUN apt install -y ros-${ROS_DISTRO}-navigation2 ros-${ROS_DISTRO}-nav2-bringup 
 
 # Install GZ Simulation packages
 RUN apt install -y ros-${ROS_DISTRO}-turtlebot3-gazebo
 
+# Install Realsense SDK
+RUN mkdir -p /etc/apt/keyrings \
+    && curl -sSf https://librealsense.intel.com/Debian/librealsense.pgp \
+    | tee /etc/apt/keyrings/librealsense.pgp > /dev/null \
+    && echo "deb [signed-by=/etc/apt/keyrings/librealsense.pgp] https://librealsense.intel.com/Debian/apt-repo `lsb_release -cs` main" \
+    | tee /etc/apt/sources.list.d/librealsense.list 
+RUN apt-get update \
+    && apt-get install -y librealsense2-dkms librealsense2-utils
+
 # Install additional Python modules
-RUN pip3 install matplotlib transforms3d
+RUN pip3 install matplotlib transforms3d ultralytics
 
 # Use Cyclone DDS as middleware
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -27,13 +35,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 RUN touch /home/.bashrc
-RUN echo 'source /opt/ros/$ROS_DISTRO/setup.bash' >> /home/.bashrc
-RUN echo 'source /home/robot_ws/install/setup.bash' >> /home/.bashrc
+RUN echo 'source /opt/ros/$ROS_DISTRO/setup.bash' >> /home/.bashrc \
+    && echo 'source /home/robot_ws/install/setup.bash' >> /home/.bashrc
 
 RUN apt-get install -y ros-${ROS_DISTRO}-xacro ros-${ROS_DISTRO}-laser-filters \
     ros-${ROS_DISTRO}-robot-localization ros-${ROS_DISTRO}-controller-manager \ 
     ros-${ROS_DISTRO}-ros2-control ros-${ROS_DISTRO}-ros2-controllers ros-${ROS_DISTRO}-gazebo-ros2-control \
-    ros-${ROS_DISTRO}-joint-state-publisher ros-${ROS_DISTRO}-rtabmap-ros
+    ros-${ROS_DISTRO}-joint-state-publisher
+RUN apt-get install -y ros-${ROS_DISTRO}-realsense2-camera \
+    ros-${ROS_DISTRO}-rtabmap-ros
+
 # Create abu workspace
 # RUN mkdir -p home/abu2024_ws/src
 
@@ -62,4 +73,4 @@ ENV NO_AT_BRIDGE 1
 # RUN chmod +x /entrypoint.sh
 # ENTRYPOINT [ "/entrypoint.sh" ]
 
-WORKDIR /home
+WORKDIR /home/robot_ws

@@ -96,7 +96,7 @@ def generate_launch_description():
     # ld.add_action(node_imu_connect)
     # ld.add_action(node_imu)
     # ld.add_action(launch_rtabmap)
-    ld.add_action(node_rf20)
+    # ld.add_action(node_rf20)
     ld.add_action(node_ekf)
 
     return ld

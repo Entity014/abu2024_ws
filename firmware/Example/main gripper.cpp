@@ -101,7 +101,7 @@ PWMServo servo3_controller;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMLENS, RGB_LED, NEO_GRB + NEO_KHZ800);
 
 bool motor_bool;
-int theta[2] = {10, 90};
+int theta[2] = {2, 30};
 
 uint16_t i;
 
@@ -133,8 +133,8 @@ void setup()
     servo1_controller.attach(SERVO1);
     servo2_controller.attach(SERVO2);
     servo3_controller.attach(SERVO3);
-    servo1_controller.write(10);
-    servo2_controller.write(90);
+    servo1_controller.write(2);
+    servo2_controller.write(30);
     servo3_controller.write(90);
 
     strip.begin();
@@ -163,8 +163,8 @@ void loop()
         }
         break;
     case AGENT_DISCONNECTED:
-        servo1_controller.write(10);
-        servo2_controller.write(90);
+        servo1_controller.write(2);
+        servo2_controller.write(30);
         servo3_controller.write(90);
         destroyEntities();
         state = WAITING_AGENT;
@@ -253,7 +253,7 @@ bool createEntities()
     rcl_init_options_set_domain_id(&init_options, 10);
 
     rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator);
-    RCCHECK(rclc_node_init_default(&node, "int32_publisher_rclc", "", &support));
+    RCCHECK(rclc_node_init_default(&node, "gripper_teensy", "", &support));
 
     RCCHECK(rclc_publisher_init_default(
         &debug_publisher,
