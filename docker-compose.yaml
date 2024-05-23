@@ -40,7 +40,7 @@ services:
     environment:
       - ROS_DOMAIN_ID=10
     command: ros2 run micro_ros_agent micro_ros_agent serial -D /dev/ttyACM0 serial -b 115200
-  
+
   uros2-agent:
     image: husarion/micro-ros-agent:humble
     stdin_open: true
@@ -50,28 +50,25 @@ services:
     privileged: true
     stop_grace_period: 1s
     devices:
-      -  /dev/ttyACM1:/dev/ttyACM1
+      - /dev/ttyACM1:/dev/ttyACM1
     environment:
       - ROS_DOMAIN_ID=10
     command: ros2 run micro_ros_agent micro_ros_agent serial -D /dev/ttyACM1 serial -b 115200
+  # localization:
+  #   extends: abu_compose
+  #   command: bash -c "source ~/.bashrc && ros2 launch abu_core localization.launch.py"
 
-  localization:
-    extends: abu_compose
-    command: bash -c "source ~/.bashrc && ros2 launch abu_core localization.launch.py"
-  
-  detection:
-    extends: abu_compose
-    command: bash -c "source ~/.bashrc && ros2 launch abu_core detection.launch.py"
-  
-  robot_state:
-    extends: abu_compose
-    command: bash -c "source ~/.bashrc && ros2 launch abu_core state.launch.py"
+  # detection:
+  #   extends: abu_compose
+  #   command: bash -c "source ~/.bashrc && ros2 launch abu_core detection.launch.py"
 
-  navigation:
-    extends: abu_compose
-    command: bash -c "source ~/.bashrc && ros2 launch abu_core navigation.launch.py"
-
+  # robot_state:
+  #   extends: abu_compose
+  #   command: bash -c "source ~/.bashrc && ros2 launch abu_core state.launch.py"
+  # navigation:
+  #   extends: abu_compose
+  #   command: bash -c "source ~/.bashrc && ros2 launch abu_core navigation.launch.py"
   # gazebo:
   #   extends: abu_compose
   #   command: bash -c "source ~/.bashrc && ros2 launch abu_description gazebo.launch.py"
-  
+

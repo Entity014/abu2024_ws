@@ -15,9 +15,9 @@ ROBOT ORIENTATION
 #define MOTOR3_INV true
 #define MOTOR4_INV true
 
-#define MOTOR1_PWM 14
-#define MOTOR1_IN_A 15
-#define MOTOR1_IN_B 16
+#define MOTOR1_PWM 15
+#define MOTOR1_IN_A 16
+#define MOTOR1_IN_B 17
 
 #define MOTOR2_PWM 28
 #define MOTOR2_IN_A 9
