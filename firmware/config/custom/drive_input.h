@@ -8,7 +8,7 @@ ROBOT ORIENTATION
          BACK
 */
 
-#define COUNTS_PER_REV1 2500 // wheel1 direction encoder's no of ticks per rev
+#define COUNTS_PER_REV1 600  // wheel1 direction encoder's no of ticks per rev
 #define COUNTS_PER_REV2 2500 // wheel2 direction encoder's no of ticks per rev
 #define COUNTS_PER_REV3 2500 // wheel3 direction encoder's no of ticks per rev
 #define COUNTS_PER_REV4 2500 // wheel4 direction encoder's no of ticks per rev
