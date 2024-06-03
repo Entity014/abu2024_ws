@@ -72,7 +72,7 @@ def generate_launch_description():
                 description="Enable use_sime_time to true",
             ),
             DeclareLaunchArgument(
-                name="rviz", default_value="true", description="Run rviz"
+                name="rviz", default_value="false", description="Run rviz"
             ),
             DeclareLaunchArgument(
                 name="map",

@@ -1,7 +1,7 @@
 ekf_filter_node:
   ros__parameters:
     frequency: 10.0
-    two_d_mode: false
+    two_d_mode: true
     publish_tf: true
 
     map_frame: map
@@ -33,27 +33,30 @@ ekf_filter_node:
         false,
         false,
       ]
-    odom1: odom_rf2o
-    odom1_config:
-      [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        true,
-        true,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-      ]
+    # odom1: odom_rf2o
+    # odom1_config:
+    #   [
+    #     true,
+    #     true,
+    #     false,
+    #     false,
+    #     false,
+    #     true,
+    #     false,
+    #     false,
+    #     false,
+    #     false,
+    #     false,
+    #     false,
+    #     false,
+    #     false,
+    #     false,
+    #   ]
 
-    imu0: camera/imu
+    imu0_differential: false
+    imu0_relative: true
+    imu0_remove_gravitational_acceleration: true
+    imu0: imu/data
     imu0_config:
       [
         false,
@@ -62,11 +65,11 @@ ekf_filter_node:
         false,
         false,
         false,
+        false,
         true,
         true,
-        false,
-        false,
-        false,
+        true,
+        true,
         true,
         false,
         false,

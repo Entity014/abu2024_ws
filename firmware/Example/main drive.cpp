@@ -122,6 +122,8 @@ Kinematics kinematics(
 Odometry odometry;
 // IMU imu;
 
+SimpleKalmanFilter simpleKalmanFilter(2, 2, 0.01);
+
 //------------------------------ < Fuction Prototype > ------------------------------//
 
 void flashLED(int n_times);
@@ -310,14 +312,14 @@ void readSensor()
 
 void moveBase()
 {
-    if (((millis() - prev_cmd_time) >= 200))
-    {
-        twist_msg.linear.x = 0.0;
-        twist_msg.linear.y = 0.0;
-        twist_msg.angular.z = 0.0;
+    // if (((millis() - prev_cmd_time) >= 200))
+    // {
+    //     twist_msg.linear.x = 0.0;
+    //     twist_msg.linear.y = 0.0;
+    //     twist_msg.angular.z = 0.0;
 
-        digitalWrite(LED_PIN, HIGH);
-    }
+    //     digitalWrite(LED_PIN, HIGH);
+    // }
 
     Kinematics::rpm req_rpm = kinematics.getRPM(
         twist_msg.linear.x,

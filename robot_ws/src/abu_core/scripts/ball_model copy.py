@@ -1,7 +1,20 @@
+import os
 import cv2
 from ultralytics import YOLO
 
-model = YOLO("bestn2.pt")
+model = YOLO(
+    os.path.join(
+        os.path.expanduser("~"),
+        "abu2024_ws",
+        "robot_ws",
+        "install",
+        "abu_core",
+        "share",
+        "abu_core",
+        "weights",
+        "bestn2.pt",
+    )
+)
 
 
 def predict(chosen_model, img, classes=[], conf=0.5):
@@ -29,7 +42,7 @@ def predict_and_detect(
             cv2.putText(
                 img,
                 f"{result.names[int(box.cls[0])]}",
-                (int(box.xyxy[0][0]), int(box.xyxy[0][1]) - 10),
+                x(int(box.xyxy[0][0]), int(box.xyxy[0][1]) - 10),
                 cv2.FONT_HERSHEY_PLAIN,
                 1,
                 (255, 0, 0),
@@ -38,12 +51,14 @@ def predict_and_detect(
     return img, results
 
 
-cap = cv2.VideoCapture("/dev/video0")
+cap = cv2.VideoCapture("/dev/video2")
 while True:
     success, img = cap.read()
-    if not success:
-        break
-    result_img, _ = predict_and_detect(model, img, classes=[], conf=0.5)
-    cv2.imshow("Image", result_img)
+    # if not success:
+    #     break
+    # result_img, _ = predict_and_detect(model, img, classes=[], conf=0.5)
+    cv2.line(img, (325, 0), (325, 480), (255, 0, 0), 2)
+    cv2.line(img, (395, 0), (395, 480), (255, 0, 0), 2)
+    cv2.imshow("Image", img)
 
     cv2.waitKey(1)

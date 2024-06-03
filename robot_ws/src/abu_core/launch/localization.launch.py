@@ -10,7 +10,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 def generate_launch_description():
     ld = LaunchDescription()
     ekf_config_path = PathJoinSubstitution(
-        [FindPackageShare("abu_description"), "config", "ekf.yaml"]
+        [FindPackageShare("abu_core"), "config", "ekf.yaml"]
     )
 
     lidar_launch_path = PathJoinSubstitution(
@@ -78,23 +78,11 @@ def generate_launch_description():
         executable="static_transform_publisher",
         arguments=["0", "0", "0", "0", "0", "0", "odom", "map"],
     )
-    node_imu_connect = Node(
-        package="abu_core",
-        executable="imu.py",
-    )
-
-    node_imu = Node(
-        package="imu_filter_madgwick",
-        executable="imu_filter_madgwick_node",
-        parameters=[{"use_mag": False}],
-    )
 
     ld.add_action(launch_description)
     ld.add_action(launch_lidar)
     # ld.add_action(node_tf2)
     ld.add_action(launch_rgbd)
-    # ld.add_action(node_imu_connect)
-    # ld.add_action(node_imu)
     # ld.add_action(launch_rtabmap)
     # ld.add_action(node_rf20)
     ld.add_action(node_ekf)

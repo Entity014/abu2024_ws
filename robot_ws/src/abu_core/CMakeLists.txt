@@ -76,12 +76,14 @@ install(TARGETS
 )
 
 install(PROGRAMS
-  scripts/imu.py
+  scripts/imu_calibration.py
+  scripts/imu_euler.py
   scripts/robot_state.py
   scripts/lidar_filter.py
   scripts/nav2_control.py
   scripts/ball_detection.py
   scripts/ball_model.py
+  scripts/ball_silo.py
   scripts/robot_main_state.py
   scripts/silo_broadcaster.py
   scripts/silo_listener.py

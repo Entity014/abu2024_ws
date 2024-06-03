@@ -42,8 +42,9 @@ RUN apt-get install -y ros-${ROS_DISTRO}-xacro ros-${ROS_DISTRO}-laser-filters \
     ros-${ROS_DISTRO}-robot-localization ros-${ROS_DISTRO}-controller-manager \ 
     ros-${ROS_DISTRO}-ros2-control ros-${ROS_DISTRO}-ros2-controllers ros-${ROS_DISTRO}-gazebo-ros2-control \
     ros-${ROS_DISTRO}-joint-state-publisher
-RUN apt-get install -y ros-${ROS_DISTRO}-realsense2-camera \
-    ros-${ROS_DISTRO}-rtabmap-ros ros-${ROS_DISTRO}-tf-transformations
+RUN apt-get update && apt-get install -y ros-${ROS_DISTRO}-realsense2-* \
+    ros-${ROS_DISTRO}-tf-transformations  ros-${ROS_DISTRO}-rtabmap-ros ros-${ROS_DISTRO}-imu-tools
+RUN apt-get upgrade -y
 
 # Create abu workspace
 # RUN mkdir -p home/abu2024_ws/src

@@ -232,7 +232,7 @@ void stateCallback(const void *msgin)
 {
     if (strcmp(state_msg.data.data, "START") == 0)
     {
-        servo3_controller.write(0);
+        servo3_controller.write(180);
     }
     else
     {
@@ -422,7 +422,7 @@ void commandGripper()
     }
     else
     {
-        motor2_controller.spin(0);
+        motor2_controller.spin(-1023);
     }
 
     // rgb_colors rgb;

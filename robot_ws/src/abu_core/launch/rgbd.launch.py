@@ -18,11 +18,35 @@ def generate_launch_description():
         launch_arguments={
             "enable_accel": "true",
             "enable_gyro": "true",
-            "pointcloud.enable": "true",
             "unite_imu_method": "1",
         }.items(),
     )
 
+    imu_calibration_node = Node(
+        package="abu_core",
+        executable="imu_calibration.py",
+    )
+    imu_euler_node = Node(
+        package="abu_core",
+        executable="imu_euler.py",
+    )
+
+    imu_filter_node = Node(
+        package="imu_filter_madgwick",
+        executable="imu_filter_madgwick_node",
+        parameters=[
+            {
+                "use_mag": False,
+                # "gain": 0.0,
+                "fixed_frame": "imu_link",
+            }
+        ],
+        # remappings=[("/imu/data_raw", "/camera/imu")],
+    )
+
     ld.add_action(launch_rgbd)
+    ld.add_action(imu_calibration_node)
+    ld.add_action(imu_filter_node)
+    ld.add_action(imu_euler_node)
 
     return ld

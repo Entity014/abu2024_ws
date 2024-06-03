@@ -50,7 +50,7 @@ services:
   uros2-agent:
     extends: uros-agent
     command: ros2 run micro_ros_agent micro_ros_agent serial -D /dev/ttyACM1 serial -b 115200
-
+    
   localization:
     extends: abu_compose
     command: bash -c "source ~/.bashrc && ros2 launch abu_core localization.launch.py"
@@ -62,6 +62,7 @@ services:
   robot_state:
     extends: abu_compose
     command: bash -c "source ~/.bashrc && ros2 launch abu_core state.launch.py"
+
   navigation:
     extends: abu_compose
     command: bash -c "source ~/.bashrc && ros2 launch abu_core navigation.launch.py"
