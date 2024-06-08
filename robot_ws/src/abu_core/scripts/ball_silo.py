@@ -21,7 +21,7 @@ class SiloDetection(Node):
             self.sub_team_callback,
             qos_profile=qos.qos_profile_sensor_data,
         )
-        self.sub_team = self.create_subscription(
+        self.sub_main = self.create_subscription(
             Int8,
             "robot/main",
             self.sub_robot_main_callback,
@@ -83,7 +83,7 @@ class SiloDetection(Node):
         )
 
     def timer_callback(self):
-        if self.team != "none" and self.robot_main_state == 11:
+        if self.team != "none" and self.robot_main_state == 12:
             msg_silo = Int8MultiArray()
             self.frame_silo, _ = self.predict_and_detect(
                 self.model, self.frame_silo, classes=[], conf=0.5
@@ -101,10 +101,10 @@ class SiloDetection(Node):
             msg_silo.data = self.silo_arr.flatten().tolist()
             self.pub_silo_array.publish(msg_silo)
 
-            cv2.line(self.frame_silo, (100, 0), (100, 480), (255, 0, 0), 2)
-            cv2.line(self.frame_silo, (260, 0), (260, 480), (255, 0, 0), 2)
-            cv2.line(self.frame_silo, (410, 0), (410, 480), (255, 0, 0), 2)
-            cv2.line(self.frame_silo, (550, 0), (550, 480), (255, 0, 0), 2)
+            cv2.line(self.frame_silo, (160, 0), (160, 480), (255, 0, 0), 2)
+            cv2.line(self.frame_silo, (320, 0), (320, 480), (255, 0, 0), 2)
+            cv2.line(self.frame_silo, (480, 0), (480, 480), (255, 0, 0), 2)
+            # cv2.line(self.frame_silo, (550, 0), (550, 480), (255, 0, 0), 2)
             cv2.line(self.frame_silo, (0, 230), (640, 230), (255, 0, 0), 2)
             cv2.line(self.frame_silo, (0, 190), (640, 190), (255, 0, 0), 2)
         self.pub_silo.publish(
@@ -148,41 +148,41 @@ class SiloDetection(Node):
                 else:
                     color = (145, 8, 160)
 
-                if box.xywh[0][0] <= 100:
+                if box.xywh[0][0] <= 160:
                     if box.xywh[0][1] >= 250:
                         self.ball_arr[0][0] = box
                     elif box.xywh[0][1] < 230 and box.xywh[0][1] >= 190:
                         self.ball_arr[0][1] = box
                     elif box.xywh[0][1] < 190:
                         self.ball_arr[0][2] = box
-                elif box.xywh[0][0] > 100 and box.xywh[0][0] <= 260:
+                elif box.xywh[0][0] > 160 and box.xywh[0][0] <= 320:
                     if box.xywh[0][1] >= 230:
                         self.ball_arr[1][0] = box
                     elif box.xywh[0][1] < 230 and box.xywh[0][1] >= 190:
                         self.ball_arr[1][1] = box
                     elif box.xywh[0][1] < 190:
                         self.ball_arr[1][2] = box
-                elif box.xywh[0][0] > 260 and box.xywh[0][0] <= 410:
+                elif box.xywh[0][0] > 320 and box.xywh[0][0] <= 480:
                     if box.xywh[0][1] >= 230:
                         self.ball_arr[2][0] = box
                     elif box.xywh[0][1] < 230 and box.xywh[0][1] >= 190:
                         self.ball_arr[2][1] = box
                     elif box.xywh[0][1] < 190:
                         self.ball_arr[2][2] = box
-                elif box.xywh[0][0] > 410 and box.xywh[0][0] <= 550:
+                elif box.xywh[0][0] > 480:
                     if box.xywh[0][1] >= 230:
                         self.ball_arr[3][0] = box
                     elif box.xywh[0][1] < 230 and box.xywh[0][1] >= 190:
                         self.ball_arr[3][1] = box
                     elif box.xywh[0][1] < 190:
                         self.ball_arr[3][2] = box
-                elif box.xywh[0][0] > 550:
-                    if box.xywh[0][1] >= 230:
-                        self.ball_arr[4][0] = box
-                    elif box.xywh[0][1] < 230 and box.xywh[0][1] >= 190:
-                        self.ball_arr[4][1] = box
-                    elif box.xywh[0][1] < 190:
-                        self.ball_arr[4][2] = box
+                # elif box.xywh[0][0] > 550:
+                #     if box.xywh[0][1] >= 230:
+                #         self.ball_arr[4][0] = box
+                #     elif box.xywh[0][1] < 230 and box.xywh[0][1] >= 190:
+                #         self.ball_arr[4][1] = box
+                #     elif box.xywh[0][1] < 190:
+                #         self.ball_arr[4][2] = box
 
                 cv2.rectangle(
                     img,

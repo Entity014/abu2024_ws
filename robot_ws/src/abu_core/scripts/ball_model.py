@@ -21,7 +21,7 @@ class BallDetection(Node):
             self.sub_team_callback,
             qos_profile=qos.qos_profile_sensor_data,
         )
-        self.sub_team = self.create_subscription(
+        self.sub_main = self.create_subscription(
             Int8,
             "robot/main",
             self.sub_robot_main_callback,
@@ -81,9 +81,9 @@ class BallDetection(Node):
             (r if (theta < 3.15 and theta > 2.83) else np.inf)
             for r, theta in zip(msgin.ranges, angles)
         ]
-        # self.get_logger().info(f"{theta[1760]}")
+        self.get_logger().info(f"{theta[1760]}")
         if theta[1760] < 0.41 and (
-            self.robot_main_state == 4 or self.robot_main_state == 5
+            self.robot_main_state == 5 or self.robot_main_state == 6
         ):
             self.detect_state = 1
         else:
@@ -94,7 +94,7 @@ class BallDetection(Node):
         self.frame = cv2.flip(self.frame, 0)
         self.frame = cv2.flip(self.frame, 1)
         if self.team != "none" and (
-            self.robot_main_state == 4 or self.robot_main_state == 5
+            self.robot_main_state == 5 or self.robot_main_state == 6
         ):
             self.frame, _ = self.predict_and_detect(
                 self.model, self.frame, classes=[], conf=0.5

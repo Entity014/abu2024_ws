@@ -131,7 +131,7 @@ class RobotMainState(Node):
 
         self.robot_state = String()
         self.window_state = "normal"
-        self.width, self.height = 1024, 600
+        self.width, self.height = 800, 600
         self.blue_color = (255, 250, 132)
         self.red_color = (145, 145, 255)
         self.yellow_color = (140, 249, 249)
@@ -163,21 +163,21 @@ class RobotMainState(Node):
             "silo2",
             "silo3",
             "silo4",
-            "silo5",
+            # "silo5",
         ]
         self.silo_pos_arr_red = [
-            [0.155, 0.516],
-            [0.155, 1.264],
-            [0.155, 2.038],
-            [0.155, 2.83],
-            [0.155, 3.58],
+            # [0.14, 0.516],
+            [0.14, 1.264],
+            [0.14, 2.038],
+            [0.14, 2.83],
+            [0.14, 3.58],
         ]
         self.silo_pos_arr_blue = [
-            [0.155, 3.58],
-            [0.155, 2.83],
-            [0.155, 2.038],
-            [0.155, 1.264],
-            [0.155, 0.516],
+            [0.14, 3.58],
+            [0.14, 2.83],
+            [0.14, 2.038],
+            [0.14, 1.264],
+            # [0.14, 0.516],
         ]
 
         self.yaw = 90
@@ -210,7 +210,7 @@ class RobotMainState(Node):
     def sub_silo_pos_callback(self, msgin):
         # self.silo_pos = msgin
         # self.get_logger().info(f"{self.silo_pos}")
-        self.robot_main_state = 12
+        self.robot_main_state = 13
 
     def sub_lidar_callback(self, msgin):
         # angles = np.linspace(msgin.angle_min, msgin.angle_max, len(msgin.ranges))
@@ -286,7 +286,7 @@ class RobotMainState(Node):
             self.terminal()
             msg_gripper_motor.data = False
             msg_gripper_arm.data = "BOTTOM"
-            msg_gripper_hand.data = [2, 30]
+            msg_gripper_hand.data = [0, 25]
             if self.team == "BLUE":
                 if self.retry == "none":
                     msg_ip.data = [0.0, 0.0, 0.0]
@@ -306,15 +306,18 @@ class RobotMainState(Node):
             cv2.destroyAllWindows()
             if self.robot_main_state == 0:  # ? go to point 1 ( Slope stage 1 )
                 if self.team == "BLUE":
-                    msg_goal.data = [6.15, 0.0, 0.0]
+                    msg_goal.data = [6.2, 0.0, 0.0]
                 elif self.team == "RED":
-                    msg_goal.data = [6.15, 10.9, 0.0]
+                    msg_goal.data = [6.2, 10.9, 0.0]
                 self.pub_goal.publish(msg_goal)
             elif self.robot_main_state == 1:  # ? go to point 2 ( Slope stage 2 )
                 if self.team == "BLUE":
-                    msg_goal.data = [6.15, 3.9, -0.25]
+                    if self.retry == "RETRY":
+                        msg_goal.data = [6.2, 3.9, -0.25]
+                    else:
+                        msg_goal.data = [6.2, 3.4, -0.25]
                 elif self.team == "RED":
-                    msg_goal.data = [6.15, 7.0, 0.25]
+                    msg_goal.data = [6.2, 7.0, 0.25]
                 self.pub_goal.publish(msg_goal)
             elif self.robot_main_state == 2:  # ? go to point 3 ( Silo )
                 if self.team == "BLUE":
@@ -323,7 +326,12 @@ class RobotMainState(Node):
                     msg_goal.data = [9.5, 7.5, -np.pi / 2]
                 self.pub_goal.publish(msg_goal)
             elif self.robot_main_state == 3:  # ? go to point 4 ( Ball )
-                self.rotation(180, 4)
+                self.move_x = False
+                self.move_y = False
+                if self.team == "BLUE":
+                    self.rotation(0, 4)
+                elif self.team == "RED":
+                    self.rotation(180, 4)
                 # if self.team == "BLUE":
                 #     msg_goal.data = [9.5, 0.7, np.pi / 2]
                 # elif self.team == "RED":
@@ -334,34 +342,39 @@ class RobotMainState(Node):
                 # #     self.move = "none"
                 # self.pub_goal.publish(msg_goal)
             elif self.robot_main_state == 4:
+                self.move_to_pos(2.1, 2.1, 5)
+                # self.move_to_pos(2.1, 2.6, 5)
+            elif self.robot_main_state == 5:
                 msg_gripper_motor.data = True
                 msg_gripper_arm.data = "BOTTOM"
-                msg_gripper_hand.data = [2, 30]
+                msg_gripper_hand.data = [0, 25]
                 if (
-                    self.color_type == self.team
-                    or self.move == "DONE"
+                    # self.color_type == self.team
+                    self.move == "DONE"
                     or self.move == "FAIL"
                 ):
                     msg_cmd_vel.linear.x = 0.0
-                    self.robot_main_state = 5
+                    self.timer_state = 0
+                    self.robot_main_state = 6
                 else:
-                    msg_cmd_vel.linear.x = -0.4
+                    msg_cmd_vel.linear.x = -0.8
                     if self.timer_state == 0:
                         self.start_time = time.time()
                         self.timer_state = 1
                     elif self.timer_state == 1:
                         elapsed_time = time.time() - self.start_time
-                        if elapsed_time > 1:
-                            self.robot_main_state = 5
+                        # self.get_logger().info(f"{self.start_time, elapsed_time}")
+                        if elapsed_time > 2:
+                            self.robot_main_state = 6
 
                 self.pub_cmd_vel.publish(msg_cmd_vel)
                 self.pub_gripper_arm.publish(msg_gripper_arm)
                 self.pub_gripper_hand.publish(msg_gripper_hand)
                 self.pub_gripper_motor.publish(msg_gripper_motor)
-            elif self.robot_main_state == 5:  # ? find ball
+            elif self.robot_main_state == 6:  # ? find ball
                 msg_gripper_motor.data = True
                 msg_gripper_arm.data = "BOTTOM"
-                msg_gripper_hand.data = [2, 30]
+                msg_gripper_hand.data = [0, 25]
                 if self.color_type == self.team:
                     if self.move == "LEFT":
                         msg_cmd_vel.linear.x = -0.4
@@ -373,14 +386,14 @@ class RobotMainState(Node):
                         msg_cmd_vel.linear.x = -0.4
                         msg_cmd_vel.angular.z = 0.0
                 else:
+                    if self.ranges_lidar[1443] < 0.6:
+                        self.color_state = 1
+                    elif self.ranges_lidar[352] < 0.6:
+                        self.color_state = 2
                     if self.color_state == 0:
                         msg_cmd_vel.linear.y = 0.2
-                        if self.ranges_lidar[1443] < 0.5:
-                            self.color_state = 1
                     elif self.color_state == 1:
                         msg_cmd_vel.linear.y = -0.2
-                        if self.ranges_lidar.ranges[352] < 0.5:
-                            self.color_state = 2
                     elif self.color_state == 2:
                         msg_cmd_vel.linear.x = 0.4
                         self.pub_cmd_vel.publish(msg_cmd_vel)
@@ -393,25 +406,25 @@ class RobotMainState(Node):
                     msg_cmd_vel.angular.z = 0.0
                     msg_gripper_motor.data = False
                     self.ball_type = 0
-                    self.robot_main_state = 6
+                    self.robot_main_state = 7
                 elif self.move == "FAIL":
                     msg_cmd_vel.linear.x = 0.0
                     msg_cmd_vel.linear.y = 0.0
                     msg_cmd_vel.angular.z = 0.0
                     msg_gripper_motor.data = False
                     self.ball_type = 1
-                    self.robot_main_state = 6
+                    self.robot_main_state = 7
 
                 self.pub_cmd_vel.publish(msg_cmd_vel)
                 self.pub_gripper_arm.publish(msg_gripper_arm)
                 self.pub_gripper_hand.publish(msg_gripper_hand)
                 self.pub_gripper_motor.publish(msg_gripper_motor)
-            elif self.robot_main_state == 6:  # ? pick ball
+            elif self.robot_main_state == 7:  # ? pick ball
                 if self.ball_type == 0:
                     if self.gripper_state == 0:
                         msg_cmd_vel.linear.x = 0.0
                         msg_gripper_arm.data = "BOTTOM"
-                        msg_gripper_hand.data = [35, 30]
+                        msg_gripper_hand.data = [35, 20]
                         msg_gripper_motor.data = False
                         self.pub_cmd_vel.publish(msg_cmd_vel)
                         self.pub_gripper_arm.publish(msg_gripper_arm)
@@ -429,12 +442,12 @@ class RobotMainState(Node):
                         self.pub_gripper_hand.publish(msg_gripper_hand)
                         self.gripper_state = 0
                         self.move = "none"
-                        self.robot_main_state = 7  # TODO: Edit here
+                        self.robot_main_state = 8  # TODO: Edit here
                 elif self.ball_type == 1:
                     if self.gripper_state == 0:
                         msg_gripper_motor.data = False
                         msg_gripper_arm.data = "BOTTOM"
-                        msg_gripper_hand.data = [35, 30]
+                        msg_gripper_hand.data = [35, 20]
                         self.pub_gripper_arm.publish(msg_gripper_arm)
                         self.pub_gripper_hand.publish(msg_gripper_hand)
                         self.pub_gripper_motor.publish(msg_gripper_motor)
@@ -451,7 +464,7 @@ class RobotMainState(Node):
                         time.sleep(1)
                         self.gripper_state = 3
                     elif self.gripper_state == 3:
-                        msg_gripper_hand.data = [2, 75]
+                        msg_gripper_hand.data = [0, 75]
                         self.pub_gripper_hand.publish(msg_gripper_hand)
                         time.sleep(0.6)
                         self.gripper_state = 4
@@ -465,9 +478,15 @@ class RobotMainState(Node):
                         if self.bottom_limit == 1:
                             self.gripper_state = 0
                             self.move = "none"
-                            self.robot_main_state = 5
-            elif self.robot_main_state == 7:  # ? go to silo
-                self.rotation(180, 8)
+                        if self.team == "BLUE":
+                            self.rotation(0, 6)
+                        elif self.team == "RED":
+                            self.rotation(180, 6)
+            elif self.robot_main_state == 8:  # ? go to silo
+                if self.team == "BLUE":
+                    self.rotation(0, 9)
+                elif self.team == "RED":
+                    self.rotation(180, 9)
                 # if self.team == "BLUE":
                 #     msg_goal.data = [9.5, 3.2, np.pi / 2]
                 # elif self.team == "RED":
@@ -475,32 +494,43 @@ class RobotMainState(Node):
                 # msg_gripper_motor.data = False
                 # self.pub_gripper_motor.publish(msg_gripper_motor)
                 # self.pub_goal.publish(msg_goal)
-            elif self.robot_main_state == 8:
+            elif self.robot_main_state == 9:
                 if self.slope_state == 0:
-                    msg_cmd_vel.linear.x = 0.4
+                    msg_cmd_vel.linear.x = 0.8
+                    if self.ranges_lidar[380] < 1.0:
+                        msg_cmd_vel.linear.y = 0.4
+                    elif self.ranges_lidar[1350] < 1.0:
+                        msg_cmd_vel.linear.y = -0.4
                     if self.pitch >= 95:
                         self.slope_state = 1
                 elif self.slope_state == 1:
-                    msg_cmd_vel.linear.x = 0.4
-                    if self.pitch <= 90:
+                    msg_cmd_vel.linear.y = 0.0
+                    msg_cmd_vel.linear.x = 0.8
+                    if self.pitch <= 91:
                         self.slope_state = 2
                 elif self.slope_state == 2:
+                    msg_cmd_vel.linear.y = 0.0
                     msg_cmd_vel.linear.x = 0.0
-                    self.robot_main_state = 9
+                    self.robot_main_state = 10
                 self.pub_cmd_vel.publish(msg_cmd_vel)
-            elif self.robot_main_state == 9:
+            elif self.robot_main_state == 10:
                 # msgin.ranges[897] Front msgin.ranges[1350] Right [Red]  msgin.ranges[380] Left [Blue]
                 # self.get_logger().info(f"{self.ranges_lidar[897]}")
-                self.move_to_pos(2.1, 2.1, 10)
-            elif self.robot_main_state == 10:
-                self.rotation(180, 11)
-            elif self.robot_main_state == 11:  # ? select silo
+                self.move_to_pos(2.1, 2.1, 11)
+            elif self.robot_main_state == 11:
+                self.move_x = False
+                self.move_y = False
+                if self.team == "BLUE":
+                    self.rotation(0, 12)
+                elif self.team == "RED":
+                    self.rotation(180, 12)
+            elif self.robot_main_state == 12:  # ? select silo
                 # self.get_logger().info(f"{self.ball_silo_arr}")
                 pass
-            elif self.robot_main_state == 12:  # ? go to silo
-                self.get_logger().info(
-                    f"{self.silo_pos_arr_red[self.silo_arr.index(self.silo_selected)]}"
-                )
+            elif self.robot_main_state == 13:  # ? go to silo
+                # self.get_logger().info(
+                #     f"{self.silo_pos_arr_red[self.silo_arr.index(self.silo_selected)]}"
+                # )
                 if self.team == "BLUE":
                     self.move_to_pos(
                         self.silo_pos_arr_blue[self.silo_arr.index(self.silo_selected)][
@@ -509,7 +539,7 @@ class RobotMainState(Node):
                         self.silo_pos_arr_blue[self.silo_arr.index(self.silo_selected)][
                             1
                         ],
-                        13,
+                        14,
                     )
                 elif self.team == "RED":
                     self.move_to_pos(
@@ -519,16 +549,18 @@ class RobotMainState(Node):
                         self.silo_pos_arr_red[self.silo_arr.index(self.silo_selected)][
                             1
                         ],
-                        13,
+                        14,
                     )
                 # if self.team == "BLUE":
                 #     msg_goal.data = [self.silo_pos.x, self.silo_pos.y - 0.7, np.pi / 2]
                 # elif self.team == "RED":
                 #     msg_goal.data = [self.silo_pos.x, self.silo_pos.y + 0.7, -np.pi / 2]
                 # self.pub_goal.publish(msg_goal)
-            elif self.robot_main_state == 13:  # ? place ball to silo
+            elif self.robot_main_state == 14:  # ? place ball to silo
+                self.move_x = False
+                self.move_y = False
                 if self.gripper_state == 0:
-                    msg_gripper_hand.data = [2, 75]
+                    msg_gripper_hand.data = [0, 75]
                     self.pub_gripper_hand.publish(msg_gripper_hand)
                     time.sleep(0.6)
                     self.gripper_state = 1
@@ -543,9 +575,7 @@ class RobotMainState(Node):
                         self.timer_state = 0
                         self.move = "none"
                         self.color_type = "none"
-                        self.robot_main_state = 14
-            elif self.robot_main_state == 14:
-                self.move_to_pos(2.1, 2.1, 3)
+                        self.robot_main_state = 3
 
         elif self.robot_state == "RESET":
             self.robot_main_state = 0  # TODO: Edit here
@@ -558,7 +588,7 @@ class RobotMainState(Node):
             self.pitch = 90
             msg_gripper_arm.data = "BOTTOM"
             msg_gripper_motor.data = False
-            msg_gripper_hand.data = [2, 30]
+            msg_gripper_hand.data = [2, 25]
             msg_goal.data = [0.0, 0.0, 0.0, 0.0, 0.0]
             self.pub_goal.publish(msg_goal)
             self.pub_gripper_arm.publish(msg_gripper_arm)
@@ -578,9 +608,9 @@ class RobotMainState(Node):
             yaw_need = -(degree + self.yaw)
 
         if yaw_need > 3:
-            msg_cmd_vel.angular.z = -np.interp(yaw_need, [0, degree], [0.6, 2.0])
+            msg_cmd_vel.angular.z = -np.interp(yaw_need, [0, 180], [0.6, 2.0])
         elif yaw_need < -3:
-            msg_cmd_vel.angular.z = -np.interp(yaw_need, [-degree, 0], [-2.0, -0.6])
+            msg_cmd_vel.angular.z = -np.interp(yaw_need, [-180, 0], [-2.0, -0.6])
         else:
             msg_cmd_vel.angular.z = 0.0
             self.robot_main_state = next_state
@@ -592,10 +622,13 @@ class RobotMainState(Node):
         y_blue_need = abs(self.ranges_lidar[380] - y)
         y_red_need = abs(self.ranges_lidar[1350] - y)
         # self.get_logger().info(f"{y_red_need}")
-        if self.ranges_lidar[897] > x + 0.15:
-            msg_cmd_vel.linear.x = np.interp(x_need + 0.15, [0, 1.0], [0.0, 0.6])
+        if self.ranges_lidar[897] == np.inf:
+            msg_cmd_vel.linear.x = 0.0
+            self.move_x = True
+        elif self.ranges_lidar[897] > x + 0.15:
+            msg_cmd_vel.linear.x = np.interp(x_need + 0.15, [0, 1.0], [0.2, 0.6])
         elif self.ranges_lidar[897] < x:
-            msg_cmd_vel.linear.x = -np.interp(x_need, [0, 1.0], [0.0, 0.6])
+            msg_cmd_vel.linear.x = -np.interp(x_need, [0, 1.0], [0.2, 0.6])
         else:
             msg_cmd_vel.linear.x = 0.0
             self.move_x = True
@@ -603,27 +636,25 @@ class RobotMainState(Node):
         if self.team == "BLUE":
             if self.ranges_lidar[380] > y + 0.15:
                 msg_cmd_vel.linear.y = -np.interp(
-                    y_blue_need + 0.15, [0, 1.0], [0.0, 0.6]
+                    y_blue_need + 0.15, [0, 1.0], [0.2, 0.6]
                 )
             elif self.ranges_lidar[380] < y:
-                msg_cmd_vel.linear.y = np.interp(y_blue_need, [0, 1.0], [0.0, 0.6])
+                msg_cmd_vel.linear.y = np.interp(y_blue_need, [0, 1.0], [0.2, 0.6])
             else:
                 msg_cmd_vel.linear.y = 0.0
                 self.move_y = True
         elif self.team == "RED":
             if self.ranges_lidar[1350] > y + 0.15:
                 msg_cmd_vel.linear.y = np.interp(
-                    y_red_need + 0.15, [0, 1.0], [0.0, 0.6]
+                    y_red_need + 0.15, [0, 1.0], [0.2, 0.6]
                 )
             elif self.ranges_lidar[1350] < y:
-                msg_cmd_vel.linear.y = -np.interp(y_red_need, [0, 1.0], [0.0, 0.6])
+                msg_cmd_vel.linear.y = -np.interp(y_red_need, [0, 1.0], [0.2, 0.6])
             else:
                 msg_cmd_vel.linear.y = 0.0
                 self.move_y = True
 
         if self.move_x and self.move_y:
-            self.move_x = False
-            self.move_y = False
             self.robot_main_state = next_state
         self.pub_cmd_vel.publish(msg_cmd_vel)
 
@@ -632,13 +663,13 @@ class RobotMainState(Node):
         frame = np.zeros((self.height, self.width, 3), dtype=np.uint8)
 
         cv2.namedWindow(name, cv2.WINDOW_NORMAL)
+        # self.toggle_fullscreen(name)
         cv2.resizeWindow(name, self.width, self.height)
         cv2.setMouseCallback(name, self.mouse_callback)
         self.create_box_team(frame)
         self.create_box_retry(frame)
         self.toggle_color_team()
         self.toggle_color_retry()
-        # self.toggle_fullscreen(name)
         cv2.imshow(name, frame)
 
         cv2.waitKey(1)

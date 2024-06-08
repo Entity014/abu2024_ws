@@ -12,6 +12,9 @@ def generate_launch_description():
     ekf_config_path = PathJoinSubstitution(
         [FindPackageShare("abu_core"), "config", "ekf.yaml"]
     )
+    ekf2_config_path = PathJoinSubstitution(
+        [FindPackageShare("abu_core"), "config", "ekf2.yaml"]
+    )
 
     lidar_launch_path = PathJoinSubstitution(
         [FindPackageShare("abu_core"), "launch", "lidar.launch.py"]
@@ -72,6 +75,15 @@ def generate_launch_description():
         remappings=[("odometry/filtered", "odom")],
     )
 
+    node_ekf2 = Node(
+        package="robot_localization",
+        executable="ekf_node",
+        name="ekf2_filter_node",
+        output="screen",
+        parameters=[ekf2_config_path],
+        remappings=[("odometry/filtered", "imu/filtered")],
+    )
+
     node_tf2 = Node(
         package="tf2_ros",
         namespace="scan_to_map",
@@ -86,5 +98,6 @@ def generate_launch_description():
     # ld.add_action(launch_rtabmap)
     # ld.add_action(node_rf20)
     ld.add_action(node_ekf)
+    # ld.add_action(node_ekf2)
 
     return ld
